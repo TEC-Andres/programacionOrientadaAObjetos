@@ -1,8 +1,12 @@
+#include "UIControllers/consoleInstance.h"
 #include <iostream>
-#include "test.h"
 
 int main() {
-    Test t;
-    t.runTests();
+    ConsoleInstance console;
+
+    int width, height;
+    console.getConsoleSize(width, height);
+    std::cout << "Console Size: " << width << "x" << height << std::endl;
+
     return 0;
 }

@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(${CMAKE_SOURCE_DIR}/lib)
 
-add_executable(SituacionProblema src/main.cpp)
+add_executable(SituacionProblema src/main.cpp lib/UIControllers/consoleInstance.cpp)
 
 # Place final executable into a top-level __release__ directory inside the source tree
 set(RELEASE_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/__release__")
