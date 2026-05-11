@@ -1,0 +1,8 @@
+/build/
+.vscode/
+/__release__/
+
+*.o
+*.obj
+*.exe
+*.dll
