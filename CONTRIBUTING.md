@@ -34,16 +34,17 @@ void exampleFunction(int param1, std::string param2);
 ### Docs
 1.- Within the repository, there's going to be a docs section where all documentation related to the project will be stored.  
 2.- Documentation must be clear, concise, and up-to-date.  
-3.- Documentation must include installation instructions, usage guides, and API references.  
+3.- Documentation must include installation instructions, usage guides, and API references.
 
 ## Branching Strategy
 We will follow the following nomenclature for branches:
 - `main`: This branch will contain the stable version of the code. All changes must be merged into this branch after being reviewed and approved.
 - `dev`: This is a branch to test everything before merging into main. All new features and bug fixes must be merged into this branch first for testing.
-- `feature/feature-name`: This branch will be used for developing new features. Each feature must have its own branch, which will be merged into dev once the feature is complete and tested.
-- `bugfix/bug-name`: This branch will be used for fixing bugs. Each bug fix must have its own branch, which will be merged into dev once the fix is complete and tested.
-- `docs/doc-name`: This branch will be used for updating documentation. Each documentation update must have its own branch, which will be merged into dev once the update is complete and reviewed.
-- `structure/structure-name`: This branch will be used for making structural changes to the codebase, such as refactoring or reorganizing files. Each structural change must have its own branch, which will be merged into dev once the change is complete and tested.
+- `feature/<feature-name>`: This branch will be used for developing new features. Each feature must have its own branch, which will be merged into dev once the feature is complete and tested.
+- `translation/<translation-name>`: This branch will be used for translating the project into different languages. Each translation must have its own branch, which will be merged into dev once the translation is complete and reviewed.
+- `bugfix/<bug-name>`: This branch will be used for fixing bugs. Each bug fix must have its own branch, which will be merged into dev once the fix is complete and tested.
+- `docs/<doc-name>`: This branch will be used for updating documentation. Each documentation update must have its own branch, which will be merged into dev once the update is complete and reviewed.
+- `structure/<structure-name>`: This branch will be used for making structural changes to the codebase, such as refactoring or reorganizing files. Each structural change must have its own branch, which will be merged into dev once the change is complete and tested.
 
 > [!WARNING]
 > Branches must be named according to the established nomenclature. Failure to do so will result in a rejected branch until named correctly.
