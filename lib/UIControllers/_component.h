@@ -6,6 +6,7 @@
 #include <vector>
 
 namespace ui {
+
 class RenderHelper {
 public:
     bool parseHex(const std::string &hex, int &r, int &g, int &b) const;
@@ -22,12 +23,10 @@ public:
     virtual std::string toString() const = 0;
     virtual int width() const = 0;
     virtual int height() const = 0;
-
     virtual bool isFocusable() const { return false; }
     virtual void setSelected(bool) {}
     virtual bool selected() const { return false; }
     virtual void onActivate() {}
-
     virtual void setOnActivate(std::function<void()>) {}
 };
 

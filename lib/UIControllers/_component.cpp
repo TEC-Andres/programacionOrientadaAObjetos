@@ -6,15 +6,15 @@ namespace ui {
 
 /**
  * @brief Parse a hex color string into RGB components.
- * 
- * This method takes a hex color string in the format "#RRGGBB" and extracts the
- * red, green, and blue components as integers. It returns `true` if the parsing
- * was successful, and `false` if the input string is not in the correct format or contains invalid characters.
+ *
+ * Takes a hex color string in the format "#RRGGBB" and extracts the
+ * red, green, and blue components as integers.
+ *
  * @param hex The hex color string to parse (e.g., "#ff0000" for red).
- * @param r Reference to an integer where the red component will be stored.
- * @param g Reference to an integer where the green component will be stored.
- * @param b Reference to an integer where the blue component will be stored.
- * @return `true` if parsing was successful, `false` otherwise.
+ * @param r Reference to store the red component (0-255).
+ * @param g Reference to store the green component (0-255).
+ * @param b Reference to store the blue component (0-255).
+ * @return true if parsing was successful, false otherwise.
  */
 bool RenderHelper::parseHex(const std::string &hex, int &r, int &g, int &b) const
 {
@@ -30,12 +30,15 @@ bool RenderHelper::parseHex(const std::string &hex, int &r, int &g, int &b) cons
 }
 
 /**
- * @brief Generate an ANSI escape code for setting the foreground color.
- * This method constructs an ANSI escape code string that can be used to set the foreground color in a terminal. The color is specified by the RGB components provided as arguments.
- * @param r The red component of the color (0-255).
- * @param g The green component of the color (0-255).
- * @param b The blue component of the color (0-255).
- * @return A string containing the ANSI escape code for the specified foreground color.
+ * @brief Generate an ANSI escape code for the foreground color.
+ *
+ * Constructs an ANSI 24-bit color escape code for setting the
+ * foreground (text) color using the given RGB components.
+ *
+ * @param r Red component (0-255).
+ * @param g Green component (0-255).
+ * @param b Blue component (0-255).
+ * @return ANSI escape sequence string, e.g. "\x1b[38;2;255;0;0m".
  */
 std::string RenderHelper::fg(int r, int g, int b) const
 {
@@ -43,12 +46,15 @@ std::string RenderHelper::fg(int r, int g, int b) const
 }
 
 /**
- * @brief Generate an ANSI escape code for setting the background color.
- * This method constructs an ANSI escape code string that can be used to set the background color in a terminal. The color is specified by the RGB components provided as arguments.
- * @param r The red component of the color (0-255).
- * @param g The green component of the color (0-255).
- * @param b The blue component of the color (0-255).
- * @return A string containing the ANSI escape code for the specified background color.
+ * @brief Generate an ANSI escape code for the background color.
+ *
+ * Constructs an ANSI 24-bit color escape code for setting the
+ * background color using the given RGB components.
+ *
+ * @param r Red component (0-255).
+ * @param g Green component (0-255).
+ * @param b Blue component (0-255).
+ * @return ANSI escape sequence string, e.g. "\x1b[48;2;0;0;255m".
  */
 std::string RenderHelper::bg(int r, int g, int b) const
 {
@@ -56,9 +62,12 @@ std::string RenderHelper::bg(int r, int g, int b) const
 }
 
 /**
- * @brief Generate an ANSI escape code for resetting the terminal color.
- * This method constructs an ANSI escape code string that can be used to reset the terminal color to its default.
- * @return A string containing the ANSI escape code for resetting the terminal color.
+ * @brief Generate an ANSI escape code to reset terminal colors.
+ *
+ * Returns the ANSI reset sequence that clears all color and style
+ * attributes, reverting to the terminal defaults.
+ *
+ * @return ANSI reset sequence "\x1b[0m".
  */
 std::string RenderHelper::reset() const
 {
@@ -66,11 +75,15 @@ std::string RenderHelper::reset() const
 }
 
 /**
- * @brief Wrap text to a specified maximum width.
- * This method wraps the input text to ensure that no line exceeds the specified maximum width.
+ * @brief Word-wrap text to a specified maximum width.
+ *
+ * Splits the input text into lines such that no line exceeds
+ * maxWidth characters. Words are preserved whole; if a single
+ * word exceeds maxWidth it is placed on its own line.
+ *
  * @param text The text to wrap.
- * @param maxWidth The maximum width of each line.
- * @return A vector of strings, where each string represents a line of wrapped text.
+ * @param maxWidth The maximum number of characters per line.
+ * @return A vector of wrapped lines.
  */
 std::vector<std::string> RenderHelper::wrapText(const std::string &text, int maxWidth) const
 {
