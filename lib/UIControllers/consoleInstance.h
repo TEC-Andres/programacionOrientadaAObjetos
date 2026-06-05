@@ -28,21 +28,31 @@ public:
     ConsoleInstance();
     ~ConsoleInstance();
 
-    // Console size management
+    /* <--- Console size management ---> */ 
+
     std::vector<int> getConsoleSize(int& width, int& height);
     void setConsoleSize(int width, int height);
 
-    // Cursor components
+    /* <--- Cursor components ---> */ 
+
     void showCursor(bool show);
     int getCursorPosition(int& x, int& y);
-    
-    // Console components
+
+    /* <--- Console components ---> */ 
+
     void getScreenSize(int& width, int& height);
     void removeScrollbar();
     void setCursorPosition(int x, int y);
     void setBackgroundColor(int color);
     void applyConsoleSize(int width, int height);
-    void anchorConsoleTopLeft();
+
+    enum class AnchorPosition : int {
+        TopLeft,
+        TopRight,
+        BottomLeft,
+        BottomRight
+    };
+    void anchorConsole(AnchorPosition position);
 
 private:
     std::vector<int> consoleSize; // [width, height] 

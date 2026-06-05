@@ -8,9 +8,8 @@ ConsoleInstance::ConsoleInstance(int width, int height) {
         system("clear");
     #endif
     ConsoleInstance::applyConsoleSize(width, height);
-    ConsoleInstance::anchorConsoleTopLeft();
+    ConsoleInstance::anchorConsole(AnchorPosition::TopLeft);
     ConsoleInstance::removeScrollbar();
-
 }
 
 // Default constructor
@@ -25,7 +24,7 @@ ConsoleInstance::ConsoleInstance() {
     if (screenWidth > 0 && screenHeight > 0) {
         ConsoleInstance::applyConsoleSize(screenWidth, screenHeight);
     }
-    ConsoleInstance::anchorConsoleTopLeft();
+    ConsoleInstance::anchorConsole(AnchorPosition::TopLeft);
     ConsoleInstance::removeScrollbar();
 }
 
@@ -33,7 +32,6 @@ ConsoleInstance::~ConsoleInstance() {
     // Destructor logic if needed
 }
 
-// Console size management
 /**
  * @brief Get the console window size.
  *
@@ -104,7 +102,21 @@ void ConsoleInstance::setConsoleSize(int width, int height) {
     consoleSize.push_back(height);
 }
 
-// Cursor components
+/**
+ * @brief Show or hide the console cursor.
+ * 
+ * Toggles the visibility of the console cursor based on the `show` parameter.
+ * The implementation uses platform-specific APIs to achieve this effect.
+ * 
+ * @param show If `true`, the cursor will be shown; if `false`, it will be hidden.
+ * 
+ * ## Example
+ * ```cpp
+ * ConsoleInstance console;
+ * console.showCursor(false); // Hides the cursor
+ * console.showCursor(true);  // Shows the cursor
+ * ```
+ */
 void ConsoleInstance::showCursor(bool show) {
     #if defined(_WIN32) || defined(_WIN64)
         CONSOLE_CURSOR_INFO cursorInfo;
@@ -117,6 +129,26 @@ void ConsoleInstance::showCursor(bool show) {
     #endif
 }
 
+
+/**
+ * @brief Get the current cursor position in the console.
+ * 
+ * Retrieves the current position of the console cursor and updates the provided
+ * `x` and `y` output parameters with the cursor's column and row, respectively.
+ * The method uses platform-specific APIs to obtain the cursor position.
+ * @param[out] x Receives the cursor's column position (0-based).
+ * @param[out] y Receives the cursor's row position (0-based).
+ * @return An integer status code (0 for success, non-zero for failure).
+ * 
+ * ## Example
+ * ```cpp
+ * int x, y;
+ * ConsoleInstance console;
+ * if (console.getCursorPosition(x, y) == 0) {
+ *   std::cout << "Cursor Position: (" << x << ", " << y << ")" << std::endl;   
+ * }
+ * ```
+ */
 void ConsoleInstance::getScreenSize(int& width, int& height) {
     width = 0;
     height = 0;
@@ -138,6 +170,20 @@ void ConsoleInstance::getScreenSize(int& width, int& height) {
     #endif
 }
 
+/**
+ * @brief Remove the console scrollbar.
+ * 
+ * This method attempts to remove the scrollbar from the console window by resizing
+ * the console buffer to match the window size. The implementation uses platform-specific
+ * APIs to achieve this effect. Note that on Unix-like systems, true scrollbar removal is 
+ * not possible, but resizing the console can effectively hide it.
+ * 
+ * ## Example
+ * ```cpp
+ * ConsoleInstance console;
+ * console.removeScrollbar();
+ * ```
+ */
 void ConsoleInstance::removeScrollbar() {
     #if defined(_WIN32) || defined(_WIN64)
         CONSOLE_SCREEN_BUFFER_INFO scrBufferInfo;
@@ -158,6 +204,25 @@ void ConsoleInstance::removeScrollbar() {
     #endif
 }
 
+
+// void ConsoleInstance::setBackgroundColor() {
+//
+// }
+
+/**
+ * @brief Apply the specified console size.
+ * 
+ * Resizes the console window to the given width and height. The method uses platform-specific
+ * APIs to adjust the console size and updates the internal `consoleSize` vector accordingly.
+ * @param width  The desired console width (columns).
+ * @param height The desired console height (rows).
+ * 
+ * ## Example
+ * ```cpp
+ * ConsoleInstance console;
+ * console.applyConsoleSize(80, 25);
+ * ```
+ */
 void ConsoleInstance::applyConsoleSize(int width, int height) {
     if (width <= 0 || height <= 0) return;
 #if defined(_WIN32) || defined(_WIN64)
@@ -185,14 +250,53 @@ void ConsoleInstance::applyConsoleSize(int width, int height) {
     consoleSize.push_back(height);
 }
 
-void ConsoleInstance::anchorConsoleTopLeft() {
+/**
+ * @brief Anchor the console window to the specified corner of the screen.
+ * 
+ * This method attempts to anchor the console window to the specified corner of the screen
+ * using platform-specific APIs. On Unix-like systems, this operation may not be applicable
+ * as terminal emulators typically manage their own window positioning.
+ * 
+ * ## Example
+ * ```cpp
+ * ConsoleInstance console;
+ * console.anchorConsole(ConsoleInstance::AnchorPosition::TopLeft);
+ * ```
+ */
+void ConsoleInstance::anchorConsole(AnchorPosition position) {
     #if defined(_WIN32) || defined(_WIN64)
     HWND hWnd = GetConsoleWindow();
-    if (hWnd) {
-        SetWindowPos(hWnd, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+    if (!hWnd) return;
+    RECT desktopRect, consoleRect;
+    GetWindowRect(GetDesktopWindow(), &desktopRect);
+    GetWindowRect(hWnd, &consoleRect);
+
+    int winW = consoleRect.right - consoleRect.left;
+    int winH = consoleRect.bottom - consoleRect.top;
+    int screenW = desktopRect.right;
+    int screenH = desktopRect.bottom;
+
+    int x = 0;
+    int y = 0;
+    switch (position) {
+        case AnchorPosition::TopRight:
+            x = screenW - winW;
+            break;
+        case AnchorPosition::BottomLeft:
+            y = screenH - winH;
+            break;
+        case AnchorPosition::BottomRight:
+            x = screenW - winW;
+            y = screenH - winH;
+            break;
+        case AnchorPosition::TopLeft:
+        default:
+            break;
     }
+
+    SetWindowPos(hWnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+
     #elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-    // TODO & TO TEST: Implement anchoring for Unix-like systems if needed, as it may require terminal-specific escape codes or settings
-     // Note: Anchoring to top-left is typically not applicable in Unix-like terminal emulators, as they manage their own window positioning.
+    (void)position; 
     #endif
 }
