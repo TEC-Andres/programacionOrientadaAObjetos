@@ -24,6 +24,16 @@
 
 namespace ui {
 
+/**
+ * @brief Construct a new MapComponent object.
+ * Initializes the MapComponent with an optional frames-per-second (FPS) setting for rendering. The constructor sets up internal state for managing render callbacks, grid cells, focus, and input handling.
+ * @param framesPerSecond The desired frames per second for rendering the map (default: 30). Must be a positive integer; otherwise, it defaults to 30 FPS.
+ * ## Example
+ * ```cpp
+ * ui::MapComponent map(60); // Create a MapComponent with 60 FPS
+ * ui::MapComponent defaultMap; // Create a MapComponent with default 30 FPS
+ * ```
+*/
 MapComponent::MapComponent(int framesPerSecond)
     : callbacks_(),
       cells_(),
@@ -36,21 +46,53 @@ MapComponent::MapComponent(int framesPerSecond)
 {
 }
 
+/**
+ * @brief Add a render callback to the MapComponent.
+ * Registers a new render callback function that will be called during the rendering process. The callback should accept a reference to an output stream where it can write its rendered content.
+ * @param callback A function or lambda that takes an `std::ostream&` parameter and renders content to it.
+ * ## Example
+ * ```cpp
+ * ui::MapComponent map;
+ * map.add([](std::ostream &out) {
+ *   out << "Rendering callback content" << std::endl;
+ * });
+ * ```
+ */
 void MapComponent::add(const RenderCallback &callback)
 {
     callbacks_.push_back(callback);
 }
 
+/**
+ * @brief Place a component on the map.
+ * Adds a new component to the map at the specified grid position.
+ * @param row The row position where the component will be placed.
+ * @param col The column position where the component will be placed.
+ * @param component A pointer to the component to be placed on the map.
+ */
 void MapComponent::place(int row, int col, IComponent *component)
 {
     cells_.push_back({component, row, col});
 }
 
+/**
+ * @brief Clear the console screen.
+ * Uses ANSI escape codes to clear the console screen and reset the cursor position to the top-left corner. This method is called before rendering a new frame to ensure that the previous content is removed.
+ */
 void MapComponent::clearScreen() const
 {
     std::cout << "\x1b[2J\x1b[H";
 }
 
+/**
+ * @brief Find the focusable cell in a given direction.
+ * Searches for the closest focusable cell in the specified direction from a starting position.
+ * @param fromRow The row position to start the search from.
+ * @param fromCol The column position to start the search from.
+ * @param dRow The row direction to search (negative for up, positive for down).
+ * @param dCol The column direction to search (negative for left, positive for right).
+ * @return A pointer to the found focusable cell, or nullptr if none is found.
+ */
 MapComponent::GridCell *MapComponent::findFocusable(int fromRow, int fromCol, int dRow, int dCol)
 {
     int bestRow = -1, bestCol = -1;
@@ -79,6 +121,11 @@ MapComponent::GridCell *MapComponent::findFocusable(int fromRow, int fromCol, in
     return best;
 }
 
+/**
+ * @brief Move the focus up.
+ * Moves the focus to the closest focusable cell above the current position.
+ * @return true if the focus was moved, false otherwise.
+ */
 bool MapComponent::moveUp()
 {
     if (!hasFocus_) return false;
@@ -94,6 +141,11 @@ bool MapComponent::moveUp()
     return true;
 }
 
+/**
+ * @brief Move the focus down.
+ * Moves the focus to the closest focusable cell below the current position.
+ * @return true if the focus was moved, false otherwise.
+ */
 bool MapComponent::moveDown()
 {
     if (!hasFocus_) return false;
@@ -109,6 +161,11 @@ bool MapComponent::moveDown()
     return true;
 }
 
+/**
+ * @brief Move the focus left.
+ * Moves the focus to the closest focusable cell to the left of the current position.
+ * @return true if the focus was moved, false otherwise.
+ */
 bool MapComponent::moveLeft()
 {
     if (!hasFocus_) return false;
@@ -124,6 +181,11 @@ bool MapComponent::moveLeft()
     return true;
 }
 
+/**
+ * @brief Move the focus right.
+ * Moves the focus to the closest focusable cell to the right of the current position.
+ * @return true if the focus was moved, false otherwise.
+ */
 bool MapComponent::moveRight()
 {
     if (!hasFocus_) return false;
@@ -139,6 +201,11 @@ bool MapComponent::moveRight()
     return true;
 }
 
+/**
+ * @brief Activate the currently focused component.
+ * Triggers the activation event for the component that currently has focus.
+ * @return true if the component was activated, false otherwise.
+ */
 bool MapComponent::activate()
 {
     if (!hasFocus_) return false;
@@ -151,6 +218,10 @@ bool MapComponent::activate()
     return false;
 }
 
+/**
+ * @brief Focus the first focusable component.
+ * Sets the focus to the first focusable component in the map.
+ */
 void MapComponent::focusFirstFocusable()
 {
     for (auto &cell : cells_) {
@@ -165,6 +236,11 @@ void MapComponent::focusFirstFocusable()
     hasFocus_ = false;
 }
 
+/**
+ * @brief Render the map component.
+ * Draws the map component and its child components.
+ * @param out The output stream to render to.
+ */
 void MapComponent::render(std::ostream &out)
 {
     for (const auto &cb : callbacks_) {
@@ -177,8 +253,16 @@ void MapComponent::render(std::ostream &out)
     }
 }
 
+/**
+ * @brief Handle input events.
+ * Processes input events and triggers appropriate actions.
+ * @return true if an input event was handled, false otherwise.
+ */
+
+
 bool MapComponent::handleInput()
 {
+
 #if defined(_WIN32) || defined(_WIN64)
     if (!_kbhit()) return false;
 
@@ -186,10 +270,10 @@ bool MapComponent::handleInput()
     if (ch == 0xE0 || ch == 0x00) {
         ch = _getch();
         switch (ch) {
-            case 72: moveUp(); return true;
-            case 80: moveDown(); return true;
-            case 75: moveLeft(); return true;
-            case 77: moveRight(); return true;
+            case UP_ARROW: moveUp(); return true;
+            case DOWN_ARROW: moveDown(); return true;
+            case LEFT_ARROW: moveLeft(); return true;
+            case RIGHT_ARROW: moveRight(); return true;
         }
     } else {
         switch (ch) {
@@ -248,6 +332,10 @@ bool MapComponent::handleInput()
     return false;
 }
 
+/**
+ * @brief Run the map component.
+ * Starts the main loop for the map component.
+ */
 void MapComponent::run()
 {
 #if defined(_WIN32) || defined(_WIN64)
@@ -290,6 +378,10 @@ void MapComponent::run()
     }
 }
 
+/**
+ * @brief Stop the map component.
+ * Signals the main loop to stop running and exit.
+ */
 void MapComponent::stop()
 {
     running_ = false;
