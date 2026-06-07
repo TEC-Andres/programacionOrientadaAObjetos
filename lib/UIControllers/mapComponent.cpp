@@ -78,10 +78,10 @@ MapComponent::MapComponent(int framesPerSecond, int gridColumns)
       focusCol_(0),
       hasFocus_(false),
       firstFrame_(true),
-      lastConsoleWidth_(getConsoleWidth()),
+      lastConsoleWidth_(0),
+      lastConsoleHeight_(0),
       gridColumns_(gridColumns > 0 ? gridColumns : 3),
-      attachedCount_(0),
-      console_()
+      attachedCount_(0)
 {
 }
 
@@ -624,6 +624,49 @@ void MapComponent::run()
         std::cout.flush();
     }
 
+    // Poll terminal size until it stabilises.  Some terminals (Windows
+    // Terminal, VSC terminal) report a default 80x25 initially via
+    // GetConsoleScreenBufferInfo.  We wait for 3 consecutive identical
+    // reads so the size has genuinely settled.
+    {
+        int prevW = 0, prevH = 0, stable = 0;
+        for (int i = 0; i < 30; ++i) {
+            int w = getConsoleWidth();
+            int h = getConsoleHeight();
+            if (w > 0 && h > 0) {
+                if (w == prevW && h == prevH) {
+                    ++stable;
+                    if (stable >= 3) {
+                        lastConsoleWidth_ = w;
+                        lastConsoleHeight_ = h;
+                        break;
+                    }
+                } else {
+                    stable = 0;
+                }
+                prevW = w;
+                prevH = h;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+        if (lastConsoleWidth_ <= 0)  lastConsoleWidth_  = getConsoleWidth();
+        if (lastConsoleHeight_ <= 0) lastConsoleHeight_ = getConsoleHeight();
+    }
+
+    // Remove scrollbar after the terminal size has settled, then clear
+    // leftover shell output and draw the very first frame so the terminal
+    // shows content immediately.  The main loop below handles subsequent
+    // updates and resize detection.
+    std::cout << "\x1b[3J\x1b[2J\x1b[H" << std::flush;
+    removeScrollbar_();
+    {
+        std::ostringstream buf;
+        render(buf);
+        lastFrame_ = buf.str();
+        std::cout << lastFrame_ << std::flush;
+    }
+    firstFrame_ = false;
+
     const auto frameDelay = std::chrono::milliseconds(1000 / fps_);
 
     while (running_) {
@@ -633,16 +676,16 @@ void MapComponent::run()
 
         if (frame != lastFrame_) {
             int curWidth = getConsoleWidth();
-            bool resized = curWidth != lastConsoleWidth_;
-            if (firstFrame_ || resized) {
-                std::cout << "\x1b[2J\x1b[H";
+            int curHeight = getConsoleHeight();
+            bool resized = curWidth != lastConsoleWidth_ || curHeight != lastConsoleHeight_;
+
+            if (resized) {
+                std::cout << "\x1b[3J\x1b[2J\x1b[H" << std::flush;
                 lastConsoleWidth_ = curWidth;
-                firstFrame_ = false;
-            } else {
-                std::cout << "\x1b[H";
+                lastConsoleHeight_ = curHeight;
+                removeScrollbar_();
             }
-            std::cout << frame;
-            std::cout.flush();
+            std::cout << "\x1b[H" << frame << std::flush;
             lastFrame_ = frame;
         }
 
@@ -652,6 +695,27 @@ void MapComponent::run()
             std::this_thread::sleep_for(frameDelay);
         }
     }
+}
+
+void MapComponent::removeScrollbar_()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut != INVALID_HANDLE_VALUE) {
+        COORD newSize = {
+            static_cast<SHORT>(lastConsoleWidth_),
+            static_cast<SHORT>(lastConsoleHeight_)
+        };
+        SetConsoleScreenBufferSize(hOut, newSize);
+    }
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    struct winsize w;
+    w.ws_col = static_cast<unsigned short>(lastConsoleWidth_);
+    w.ws_row = static_cast<unsigned short>(lastConsoleHeight_);
+    w.ws_xpixel = 0;
+    w.ws_ypixel = 0;
+    ioctl(STDOUT_FILENO, TIOCSWINSZ, &w);
+#endif
 }
 
 /**

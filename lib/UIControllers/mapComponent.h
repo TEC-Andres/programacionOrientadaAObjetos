@@ -7,7 +7,6 @@
 #include <chrono>
 #include <thread>
 #include "_component.h"
-#include "consoleInstance.h"
 
 #define UP_ARROW    72
 #define DOWN_ARROW  80
@@ -67,6 +66,7 @@ private:
 
     void focusFirstFocusable();
     GridCell *findFocusable(int fromRow, int fromCol, int dRow, int dCol);
+    void removeScrollbar_();
 
     std::vector<RenderCallback> callbacks_;
     std::vector<GridCell> cells_;
@@ -78,10 +78,10 @@ private:
     bool hasFocus_;
     bool firstFrame_;
     int lastConsoleWidth_;
+    int lastConsoleHeight_;
     int gridColumns_;
     int attachedCount_;
     std::string background_;
-    ConsoleInstance console_;
 };
 
 } // namespace ui
