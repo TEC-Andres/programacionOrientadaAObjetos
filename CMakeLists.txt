@@ -3,13 +3,13 @@ project(SituacionProblema)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib)
+include_directories(${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/assets)
 
-add_library(SituacionProblemaLib
-	lib/UIControllers/consoleInstance.cpp
-	lib/UIModals/locationBar.cpp
-	lib/dynamicLink/dynamicLink.cpp
+file(GLOB_RECURSE LIB_SOURCES
+	lib/*.cpp
 )
+
+add_library(SituacionProblemaLib ${LIB_SOURCES})
 
 add_executable(SituacionProblema src/main.cpp)
 target_link_libraries(SituacionProblema PRIVATE SituacionProblemaLib)
