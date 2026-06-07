@@ -2,6 +2,22 @@
 #include <sstream>
 #include <algorithm>
 
+#if defined(_WIN32) || defined(_WIN64)
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
+    #include <windows.h>
+    #ifdef max
+        #undef max
+    #endif
+    #ifdef min
+        #undef min
+    #endif
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    #include <sys/ioctl.h>
+    #include <unistd.h>
+#endif
+
 namespace ui {
 
 /**
@@ -112,6 +128,90 @@ std::vector<std::string> RenderHelper::wrapText(const std::string &text, int max
     }
 
     return lines;
+}
+
+/**
+ * @brief Render the component to the specified output stream.
+ *
+ * This method enables virtual terminal processing (if necessary) and
+ * outputs the string representation of the component to the provided
+ * output stream.
+ *
+ * @param out The output stream where the component will be rendered.
+ */
+void ComponentBase::render(std::ostream &out)
+{
+    enableVT();
+    out << toString();
+}
+
+/**
+ * @brief Get the console width in columns.
+ *
+ * This function retrieves the current width of the console window in
+ * terms of columns. It uses platform-specific APIs to query the console
+ * dimensions. If the console width cannot be determined, it returns a
+ * default value of 80 columns.
+ *
+ * @return The width of the console in columns.
+ */
+int ComponentBase::getConsoleWidth()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    CONSOLE_SCREEN_BUFFER_INFO scrBufferInfo;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &scrBufferInfo)) {
+        return scrBufferInfo.srWindow.Right - scrBufferInfo.srWindow.Left + 1;
+    }
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    struct winsize w;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
+        return w.ws_col;
+    }
+#endif
+    return 80;
+}
+
+/**
+ * @brief Get the console height in rows.
+ * This function retrieves the current height of the console window in terms of rows. It uses platform-specific APIs to query the console dimensions. If the console height cannot be determined, it returns a default value of 25 rows.
+ * @return The height of the console in rows.
+ */
+int ComponentBase::getConsoleHeight()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    CONSOLE_SCREEN_BUFFER_INFO scrBufferInfo;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &scrBufferInfo)) {
+        return scrBufferInfo.srWindow.Bottom - scrBufferInfo.srWindow.Top + 1;
+    }
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    struct winsize w;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
+        return w.ws_row;
+    }
+#endif
+    return 25;
+}
+
+/**
+ * @brief Enable virtual terminal processing on Windows.
+ *
+ * This method enables virtual terminal processing for the console on
+ * Windows platforms, allowing the use of ANSI escape codes for colors
+ * and other text attributes. On non-Windows platforms, this method does
+ * nothing as virtual terminal processing is typically supported by default.
+ */
+void ComponentBase::enableVT()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut != INVALID_HANDLE_VALUE) {
+        DWORD mode = 0;
+        if (GetConsoleMode(hOut, &mode)) {
+            mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+            SetConsoleMode(hOut, mode);
+        }
+    }
+#endif
 }
 
 } // namespace ui
