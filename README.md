@@ -11,3 +11,13 @@ cmake --build build --config Release
 - CMake 3.10 or higher
 - VSC SDK for C++ (optional, for development)
 - Windows 10 or higher (for console features)
+
+## Compatibility table
+| Shell provider | Tested status | Is env functional? | Comments |
+| :--- | :--- | :--- | :--- |
+| Windows comcast | YES | YES | - |
+| Windows Terminal | YES | YES | Small garbage bug still persists causing sidebar to show up in env. But it now initializes at the correct size |
+| MINGW64 | YES | NO | UTF-16 characters are not loaded correctly & character build-up occurs |
+| VSC Terminal | YES | YES | Small garbage bug still persists causing sidebar to show up in env. But it now initializes at the correct size |
+| MacOS Terminal | YES | NO | UTF-16 issue |
+| MacOS VSC Terminal | NO | - | - |
