@@ -2,64 +2,60 @@
 
 namespace ui {
 
-namespace {
-
-void getFrameSize(const std::string &text, int &width, int &height)
-{
-    width = 0;
-    height = 0;
-
-    int current = 0;
-    bool endedWithNewline = false;
-    for (const char ch : text) {
-        if (ch == '\n') {
-            width = std::max(width, current);
-            current = 0;
-            ++height;
-            endedWithNewline = true;
-            continue;
-        }
-        if (ch == '\r') {
-            continue;
-        }
-        ++current;
-        endedWithNewline = false;
-    }
-
-    if ((!text.empty() || current > 0) && !endedWithNewline) {
-        width = std::max(width, current);
-        ++height;
-    }
-}
-
-} // namespace
-
 DynamicLink::DynamicLink(int framesPerSecond)
     : callbacks_(),
       fps_(framesPerSecond > 0 ? framesPerSecond : 30),
       running_(false),
-      last_frame_(),
-      last_console_width_(0),
-      last_console_height_(0),
-      console_()
+      last_frame_()
 {
 }
 
+/**
+ * @brief Add a render callback to the DynamicLink.
+ * Registers a new render callback function that will be called during the rendering process. The callback should accept a reference to an output stream where it can write its rendered content.
+ * @param callback A function or lambda that takes an `std::ostream&` parameter and renders content to it.
+ * ## Example
+ * ```cpp * ui::DynamicLink link;
+ * link.add([](std::ostream &out) {
+ *   out << "Rendering frame content" << std::endl;
+ * });
+ * ```
+ */
 void DynamicLink::add(const RenderCallback &callback)
 {
     callbacks_.push_back(callback);
 }
 
+/**
+ * @brief Clear the console screen.
+ * This method sends the appropriate ANSI escape codes to clear the console screen and reset the cursor position to the top-left corner. It is used internally by the DynamicLink to ensure that each new frame is rendered on a clean slate.
+ */
 void DynamicLink::clearScreen() const
 {
     std::cout << "\x1b[2J\x1b[H";
 }
 
+/**
+ * @brief Main loop basic function.
+ */
 void DynamicLink::mainloop()
 {
     mainloop(0);
 }
 
+/**
+ * @brief Main loop for the DynamicLink.
+ * This method starts the main loop of the DynamicLink, which continuously calls the registered render callbacks to generate the output frame. The loop runs until `stop()` is called or until the specified frame limit is reached (if `frameLimit` is greater than 0). The method also handles frame timing based on the configured frames per second (FPS) and ensures that the console output is updated only when there are changes to the rendered content.
+ * @param frameLimit The maximum number of frames to render before automatically stopping the loop. If set to 0 or a negative value, the loop will run indefinitely until `stop()` is called.
+ * ## Example
+ * ```cpp
+ * ui::DynamicLink link(60); // Create a DynamicLink with 60 FPS
+ * link.add([](std::ostream &out) {
+ *   out << "Rendering frame content" << std::endl;
+ * });
+ * link.mainloop(100); // Run the main loop for 100 frames
+ * ```
+ */
 void DynamicLink::mainloop(int frameLimit)
 {
     running_ = true;
@@ -72,18 +68,6 @@ void DynamicLink::mainloop(int frameLimit)
             callback(buffer);
         }
         const std::string frameText = buffer.str();
-
-        int width = 0;
-        int height = 0;
-        getFrameSize(frameText, width, height);
-        width = std::max(1, width);
-        height = std::max(1, height);
-        if (width != last_console_width_ || height != last_console_height_) {
-            console_.applyConsoleSize(width, height);
-            last_console_width_ = width;
-            last_console_height_ = height;
-            last_frame_.clear();
-        }
 
         if (frameText != last_frame_) {
             clearScreen();
@@ -98,6 +82,10 @@ void DynamicLink::mainloop(int frameLimit)
     }
 }
 
+/**
+ * @brief Stop the DynamicLink main loop.
+ * This method stops the main loop of the DynamicLink, causing it to exit after the current frame is rendered.
+ */
 void DynamicLink::stop()
 {
     running_ = false;
