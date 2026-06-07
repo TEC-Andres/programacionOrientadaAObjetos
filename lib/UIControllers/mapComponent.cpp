@@ -17,6 +17,7 @@
     #endif
 #elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
     #include <sys/select.h>
+    #include <sys/ioctl.h>
     #include <termios.h>
     #include <unistd.h>
     #include <fcntl.h>
@@ -25,16 +26,49 @@
 namespace ui {
 
 /**
- * @brief Construct a new MapComponent object.
- * Initializes the MapComponent with an optional frames-per-second (FPS) setting for rendering. The constructor sets up internal state for managing render callbacks, grid cells, focus, and input handling.
- * @param framesPerSecond The desired frames per second for rendering the map (default: 30). Must be a positive integer; otherwise, it defaults to 30 FPS.
- * ## Example
- * ```cpp
- * ui::MapComponent map(60); // Create a MapComponent with 60 FPS
- * ui::MapComponent defaultMap; // Create a MapComponent with default 30 FPS
- * ```
-*/
-MapComponent::MapComponent(int framesPerSecond)
+ * @brief Get the console width in columns.
+ * This function retrieves the current width of the console window in terms of columns. It uses platform-specific APIs to query the console dimensions. If the console width cannot be determined, it returns a default value of 80 columns.
+ * @return The width of the console in columns.
+ */
+static int getConsoleWidth()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+        return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    }
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    struct winsize w;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
+        return w.ws_col;
+    }
+#endif
+    return 80;
+}
+
+/**
+ * @brief Get the console height in rows.
+ * This function retrieves the current height of the console window in terms of rows. It uses platform-specific APIs to query the console dimensions. If the console height cannot be determined, it returns a default value of 25 rows.
+ * @return The height of the console in rows.
+ */
+static int getConsoleHeight()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+        return csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    }
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    struct winsize w;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
+        return w.ws_row;
+    }
+#endif
+    return 25;
+}
+
+
+MapComponent::MapComponent(int framesPerSecond, int gridColumns)
     : callbacks_(),
       cells_(),
       fps_(framesPerSecond > 0 ? framesPerSecond : 30),
@@ -42,7 +76,12 @@ MapComponent::MapComponent(int framesPerSecond)
       lastFrame_(),
       focusRow_(0),
       focusCol_(0),
-      hasFocus_(false)
+      hasFocus_(false),
+      firstFrame_(true),
+      lastConsoleWidth_(0),
+      lastConsoleHeight_(0),
+      gridColumns_(gridColumns > 0 ? gridColumns : 3),
+      attachedCount_(0)
 {
 }
 
@@ -76,12 +115,37 @@ void MapComponent::place(int row, int col, IComponent *component)
 }
 
 /**
- * @brief Clear the console screen.
- * Uses ANSI escape codes to clear the console screen and reset the cursor position to the top-left corner. This method is called before rendering a new frame to ensure that the previous content is removed.
+ * @brief Attach a component to the map based on its alignment.
+ * This method attaches a component to the map by determining its column position based on its alignment. It calculates the appropriate row for the component in that column and adds it to the internal list of cells. The method also increments the count of attached components.
+ * @param component A pointer to the component to be attached to the map.
  */
-void MapComponent::clearScreen() const
+void MapComponent::attach(IComponent *component)
 {
-    std::cout << "\x1b[2J\x1b[H";
+    Align a = component->alignment();
+    int col;
+    switch (a) {
+        case Align::Center:
+        case Align::TopCenter:
+        case Align::MiddleCenter:
+        case Align::BottomCenter:
+            col = 1;
+            break;
+        case Align::Right:
+        case Align::TopRight:
+        case Align::MiddleRight:
+        case Align::BottomRight:
+            col = 2;
+            break;
+        default:
+            col = 0;
+            break;
+    }
+    int row = 0;
+    for (auto &cell : cells_) {
+        if (cell.col == col) ++row;
+    }
+    cells_.push_back({component, row, col});
+    ++attachedCount_;
 }
 
 /**
@@ -95,30 +159,74 @@ void MapComponent::clearScreen() const
  */
 MapComponent::GridCell *MapComponent::findFocusable(int fromRow, int fromCol, int dRow, int dCol)
 {
-    int bestRow = -1, bestCol = -1;
-    GridCell *best = nullptr;
-
-    for (auto &cell : cells_) {
-        if (!cell.component || !cell.component->isFocusable()) continue;
-
-        if (dRow != 0 && cell.col != fromCol) continue;
-        if (dCol != 0 && cell.row != fromRow) continue;
-
-        if (dRow > 0 && cell.row <= fromRow) continue;
-        if (dRow < 0 && cell.row >= fromRow) continue;
-        if (dCol > 0 && cell.col <= fromCol) continue;
-        if (dCol < 0 && cell.col >= fromCol) continue;
-
-        int dist = std::abs(cell.row - fromRow) + std::abs(cell.col - fromCol);
-        int bestDist = std::abs(bestRow - fromRow) + std::abs(bestCol - fromCol);
-        if (!best || dist < bestDist) {
-            best = &cell;
-            bestRow = cell.row;
-            bestCol = cell.col;
+    // Strict pass: require same row (horizontal) or same column (vertical)
+    auto strict = [&]() -> GridCell* {
+        int bestRow = -1, bestCol = -1;
+        GridCell *best = nullptr;
+        for (auto &cell : cells_) {
+            if (!cell.component || !cell.component->isFocusable()) continue;
+            if (dRow != 0 && cell.col != fromCol) continue;
+            if (dCol != 0 && cell.row != fromRow) continue;
+            if (dRow > 0 && cell.row <= fromRow) continue;
+            if (dRow < 0 && cell.row >= fromRow) continue;
+            if (dCol > 0 && cell.col <= fromCol) continue;
+            if (dCol < 0 && cell.col >= fromCol) continue;
+            int dist = std::abs(cell.row - fromRow) + std::abs(cell.col - fromCol);
+            int bestDist = std::abs(bestRow - fromRow) + std::abs(bestCol - fromCol);
+            if (!best || dist < bestDist) {
+                best = &cell;
+                bestRow = cell.row;
+                bestCol = cell.col;
+            }
         }
+        return best;
+    };
+
+    GridCell *result = strict();
+    if (result) return result;
+
+    // Relaxed pass: any cell in the given direction (allows cross-row
+    // horizontal and cross-column vertical navigation)
+    {
+        int bestRow = -1, bestCol = -1;
+        GridCell *best = nullptr;
+        for (auto &cell : cells_) {
+            if (!cell.component || !cell.component->isFocusable()) continue;
+            if (dRow > 0 && cell.row <= fromRow) continue;
+            if (dRow < 0 && cell.row >= fromRow) continue;
+            if (dCol > 0 && cell.col <= fromCol) continue;
+            if (dCol < 0 && cell.col >= fromCol) continue;
+            if (dRow == 0 && dCol == 0) continue;
+            int dist = std::abs(cell.row - fromRow) + std::abs(cell.col - fromCol);
+            int bestDist = std::abs(bestRow - fromRow) + std::abs(bestCol - fromCol);
+            if (!best || dist < bestDist) {
+                best = &cell;
+                bestRow = cell.row;
+                bestCol = cell.col;
+            }
+        }
+        if (best) return best;
     }
 
-    return best;
+    // Any-direction fallback: closest focusable cell regardless of direction
+    // Handles the case where all components share the same column
+    // (same alignment) so left/right can still cycle through them.
+    {
+        int bestRow = -1, bestCol = -1;
+        GridCell *best = nullptr;
+        for (auto &cell : cells_) {
+            if (!cell.component || !cell.component->isFocusable()) continue;
+            if (cell.row == fromRow && cell.col == fromCol) continue;
+            int dist = std::abs(cell.row - fromRow) + std::abs(cell.col - fromCol);
+            int bestDist = std::abs(bestRow - fromRow) + std::abs(bestCol - fromCol);
+            if (!best || dist < bestDist) {
+                best = &cell;
+                bestRow = cell.row;
+                bestCol = cell.col;
+            }
+        }
+        return best;
+    }
 }
 
 /**
@@ -169,16 +277,26 @@ bool MapComponent::moveDown()
 bool MapComponent::moveLeft()
 {
     if (!hasFocus_) return false;
-    GridCell *next = findFocusable(focusRow_, focusCol_, 0, -1);
-    if (!next) return false;
-
-    for (auto &cell : cells_) {
-        if (cell.component) cell.component->setSelected(false);
+    int n = (int)cells_.size();
+    int idx = -1;
+    for (int i = 0; i < n; ++i) {
+        if (cells_[i].row == focusRow_ && cells_[i].col == focusCol_) {
+            idx = i;
+            break;
+        }
     }
-    focusRow_ = next->row;
-    focusCol_ = next->col;
-    next->component->setSelected(true);
-    return true;
+    if (idx < 0) return false;
+    for (int i = 1; i <= n; ++i) {
+        int prev = (idx - i + n) % n;
+        if (cells_[prev].component && cells_[prev].component->isFocusable()) {
+            for (auto &cell : cells_) cell.component->setSelected(false);
+            focusRow_ = cells_[prev].row;
+            focusCol_ = cells_[prev].col;
+            cells_[prev].component->setSelected(true);
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -189,16 +307,26 @@ bool MapComponent::moveLeft()
 bool MapComponent::moveRight()
 {
     if (!hasFocus_) return false;
-    GridCell *next = findFocusable(focusRow_, focusCol_, 0, 1);
-    if (!next) return false;
-
-    for (auto &cell : cells_) {
-        if (cell.component) cell.component->setSelected(false);
+    int n = (int)cells_.size();
+    int idx = -1;
+    for (int i = 0; i < n; ++i) {
+        if (cells_[i].row == focusRow_ && cells_[i].col == focusCol_) {
+            idx = i;
+            break;
+        }
     }
-    focusRow_ = next->row;
-    focusCol_ = next->col;
-    next->component->setSelected(true);
-    return true;
+    if (idx < 0) return false;
+    for (int i = 1; i <= n; ++i) {
+        int next = (idx + i) % n;
+        if (cells_[next].component && cells_[next].component->isFocusable()) {
+            for (auto &cell : cells_) cell.component->setSelected(false);
+            focusRow_ = cells_[next].row;
+            focusCol_ = cells_[next].col;
+            cells_[next].component->setSelected(true);
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -243,13 +371,147 @@ void MapComponent::focusFirstFocusable()
  */
 void MapComponent::render(std::ostream &out)
 {
+    struct Rect { int row, col, width, height; };
+    std::vector<Rect> occupied;
+
+    int consoleWidth = getConsoleWidth();
+    int consoleHeight = getConsoleHeight();
+
+    // --- Render callbacks and count their rows ---
+    std::ostringstream cbBuf;
     for (const auto &cb : callbacks_) {
-        cb(out);
+        cb(cbBuf);
     }
+    std::string cbStr = cbBuf.str();
+    int cbRows = 0;
+    for (char c : cbStr) {
+        if (c == '\n') ++cbRows;
+    }
+    out << cbStr;
+
+    // --- Render cells with overlap avoidance ---
     for (auto &cell : cells_) {
-        if (cell.component) {
-            cell.component->render(out);
+        if (!cell.component) continue;
+
+        int compWidth = cell.component->width();
+        int compHeight = cell.component->height();
+        Align align = cell.component->alignment();
+
+        int col = cell.col;
+        int row = cell.row;
+
+        bool usesGridRow = true;
+        switch (align) {
+            case Align::Left:
+            case Align::TopLeft:
+                break;
+            case Align::Center:
+            case Align::TopCenter:
+                col = (consoleWidth - compWidth) / 2;
+                break;
+            case Align::Right:
+            case Align::TopRight:
+                col = consoleWidth - compWidth;
+                break;
+            case Align::MiddleLeft:
+                row = (consoleHeight - compHeight) / 2;
+                usesGridRow = false;
+                break;
+            case Align::MiddleCenter:
+                col = (consoleWidth - compWidth) / 2;
+                row = (consoleHeight - compHeight) / 2;
+                usesGridRow = false;
+                break;
+            case Align::MiddleRight:
+                col = consoleWidth - compWidth;
+                row = (consoleHeight - compHeight) / 2;
+                usesGridRow = false;
+                break;
+            case Align::BottomLeft:
+                row = consoleHeight - compHeight;
+                usesGridRow = false;
+                break;
+            case Align::BottomCenter:
+                col = (consoleWidth - compWidth) / 2;
+                row = consoleHeight - compHeight;
+                usesGridRow = false;
+                break;
+            case Align::BottomRight:
+                col = consoleWidth - compWidth;
+                row = consoleHeight - compHeight;
+                usesGridRow = false;
+                break;
         }
+
+        // Offset below callbacks for top-aligned (grid-row-based) components
+        if (usesGridRow) {
+            row += cbRows;
+        }
+
+        // Apply percentage displacement based on alignment direction
+        {
+            float dx = cell.component->displacementX();
+            float dy = cell.component->displacementY();
+            int dirX = 1;
+            switch (align) {
+                case Align::Right: case Align::TopRight:
+                case Align::MiddleRight: case Align::BottomRight:
+                    dirX = -1; break;
+                default: break;
+            }
+            int dirY = 1;
+            switch (align) {
+                case Align::BottomLeft: case Align::BottomCenter:
+                case Align::BottomRight:
+                    dirY = -1; break;
+                default: break;
+            }
+            col += (int)(dx * compWidth  * dirX / 100.0f);
+            row += (int)(dy * compHeight * dirY / 100.0f);
+        }
+
+        if (col < 0) col = 0;
+        if (row < 0) row = 0;
+
+        // --- Resolve overlap with other cells by shifting horizontally ---
+        for (int attempt = 0; attempt < 20; ++attempt) {
+            bool conflict = false;
+            for (auto &o : occupied) {
+                if (row < o.row + o.height && row + compHeight > o.row &&
+                    col < o.col + o.width && col + compWidth > o.col) {
+                    int rightEdge = o.col + o.width;
+                    if (rightEdge + compWidth <= consoleWidth) {
+                        col = rightEdge;
+                    } else {
+                        int leftEdge = o.col - compWidth;
+                        if (leftEdge >= 0) {
+                            col = leftEdge;
+                        }
+                    }
+                    conflict = true;
+                    break;
+                }
+            }
+            if (!conflict) break;
+        }
+
+        // --- Render line by line with cursor positioning ---
+        std::string content = cell.component->toString();
+        size_t pos = 0;
+        int lineNum = 0;
+        while (pos < content.size()) {
+            size_t next = content.find('\n', pos);
+            std::string line = (next == std::string::npos)
+                ? content.substr(pos)
+                : content.substr(pos, next - pos);
+            out << "\x1b[" << (row + lineNum + 1) << ";" << (col + 1) << "H";
+            out << line;
+            ++lineNum;
+            if (next == std::string::npos) break;
+            pos = next + 1;
+        }
+
+        occupied.push_back({row, col, compWidth, compHeight});
     }
 }
 
@@ -356,6 +618,55 @@ void MapComponent::run()
 
     focusFirstFocusable();
     running_ = true;
+
+    if (!background_.empty()) {
+        std::cout << "\x1b]11;" << background_ << "\x07";
+        std::cout.flush();
+    }
+
+    // Poll terminal size until it stabilises.  Some terminals (Windows
+    // Terminal, VSC terminal) report a default 80x25 initially via
+    // GetConsoleScreenBufferInfo.  We wait for 3 consecutive identical
+    // reads so the size has genuinely settled.
+    {
+        int prevW = 0, prevH = 0, stable = 0;
+        for (int i = 0; i < 30; ++i) {
+            int w = getConsoleWidth();
+            int h = getConsoleHeight();
+            if (w > 0 && h > 0) {
+                if (w == prevW && h == prevH) {
+                    ++stable;
+                    if (stable >= 3) {
+                        lastConsoleWidth_ = w;
+                        lastConsoleHeight_ = h;
+                        break;
+                    }
+                } else {
+                    stable = 0;
+                }
+                prevW = w;
+                prevH = h;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+        if (lastConsoleWidth_ <= 0)  lastConsoleWidth_  = getConsoleWidth();
+        if (lastConsoleHeight_ <= 0) lastConsoleHeight_ = getConsoleHeight();
+    }
+
+    // Remove scrollbar after the terminal size has settled, then clear
+    // leftover shell output and draw the very first frame so the terminal
+    // shows content immediately.  The main loop below handles subsequent
+    // updates and resize detection.
+    std::cout << "\x1b[3J\x1b[2J\x1b[H" << std::flush;
+    removeScrollbar_();
+    {
+        std::ostringstream buf;
+        render(buf);
+        lastFrame_ = buf.str();
+        std::cout << lastFrame_ << std::flush;
+    }
+    firstFrame_ = false;
+
     const auto frameDelay = std::chrono::milliseconds(1000 / fps_);
 
     while (running_) {
@@ -364,9 +675,17 @@ void MapComponent::run()
         const std::string frame = buffer.str();
 
         if (frame != lastFrame_) {
-            clearScreen();
-            std::cout << frame;
-            std::cout.flush();
+            int curWidth = getConsoleWidth();
+            int curHeight = getConsoleHeight();
+            bool resized = curWidth != lastConsoleWidth_ || curHeight != lastConsoleHeight_;
+
+            if (resized) {
+                std::cout << "\x1b[3J\x1b[2J\x1b[H" << std::flush;
+                lastConsoleWidth_ = curWidth;
+                lastConsoleHeight_ = curHeight;
+                removeScrollbar_();
+            }
+            std::cout << "\x1b[H" << frame << std::flush;
             lastFrame_ = frame;
         }
 
@@ -378,6 +697,27 @@ void MapComponent::run()
     }
 }
 
+void MapComponent::removeScrollbar_()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut != INVALID_HANDLE_VALUE) {
+        COORD newSize = {
+            static_cast<SHORT>(lastConsoleWidth_),
+            static_cast<SHORT>(lastConsoleHeight_)
+        };
+        SetConsoleScreenBufferSize(hOut, newSize);
+    }
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    struct winsize w;
+    w.ws_col = static_cast<unsigned short>(lastConsoleWidth_);
+    w.ws_row = static_cast<unsigned short>(lastConsoleHeight_);
+    w.ws_xpixel = 0;
+    w.ws_ypixel = 0;
+    ioctl(STDOUT_FILENO, TIOCSWINSZ, &w);
+#endif
+}
+
 /**
  * @brief Stop the map component.
  * Signals the main loop to stop running and exit.
@@ -385,6 +725,9 @@ void MapComponent::run()
 void MapComponent::stop()
 {
     running_ = false;
+    std::cout << "\x1b]11;#000000\x07";
+    std::cout << "\x1b[0m";
+    std::cout.flush();
 }
 
 } // namespace ui
