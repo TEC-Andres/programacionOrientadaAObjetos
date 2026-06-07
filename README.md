@@ -20,4 +20,4 @@ cmake --build build --config Release
 | MINGW64 | YES | NO | UTF-16 characters are not loaded correctly & character build-up occurs |
 | VSC Terminal | YES | YES | Small garbage bug still persists causing sidebar to show up in env. But it now initializes at the correct size |
 | MacOS Terminal | YES | NO | UTF-16 issue |
-| MacOS VSC Terminal | NO | - | - |
+| MacOS VSC Terminal | YES | YES | Small garbage bug still persists causing sidebar to show up in env. But it now initializes at the correct size |
