@@ -68,13 +68,25 @@ int main(int argc, char* argv[]) {
     btnSettings.setOnActivate([]() {
         std::cout << "\x1b[2J\x1b[H\x1b[33mSettings activated!\x1b[0m\n";
         std::cout << "Press any key to return...\n";
-        _getch();
+        #if defined(_WIN32) || defined(_WIN64)
+            _getch();
+        #elif defined(__APPLE__) || defined(__MACH__)
+            std::cin.get();
+        #else
+            std::cin.get(); // Fallback for Linux or other systems
+        #endif
     });
 
     btnHelp.setOnActivate([]() {
         std::cout << "\x1b[2J\x1b[H\x1b[35mHelp activated!\x1b[0m\n";
         std::cout << "Press any key to return...\n";
-        _getch();
+        #if defined(_WIN32) || defined(_WIN64)
+            _getch();
+        #elif defined(__APPLE__) || defined(__MACH__)
+            std::cin.get();
+        #else
+            std::cin.get(); // Fallback for Linux or other systems
+        #endif
     });
 
     btnExit.setOnActivate([&]() {
