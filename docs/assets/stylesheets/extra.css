@@ -1,0 +1,839 @@
+/* Custom visual styles from RoBorregos@Home Docs */
+/* REPO: https://github.com/RoBorregos/Home-Docs.git*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@300;700&display=swap');
+
+:root,
+[data-md-color-scheme="default"] {
+  --bg: #F5F5F1;
+  --card: #FFFFFF;
+  --muted: #808080;
+  --text: #221F1F;
+  --primary: #E50914;
+  --accent: #B20710;
+  --card-height: 340px;
+  --card-img-height: 150px;
+  --radius: 12px;
+  --glass: rgba(255, 255, 255, 0.6);
+  --border-light: rgba(0, 0, 0, 0.08);
+  --shadow: rgba(0, 0, 0, 0.08);
+  --code-bg: rgba(0, 0, 0, 0.04);
+  --hover-bg: rgba(229, 9, 20, 0.06);
+}
+
+[data-md-color-scheme="slate"] {
+  --bg: #141414;
+  --card: #221F1F;
+  --muted: #808080;
+  --text: #F5F5F1;
+  --primary: #E50914;
+  --accent: #B20710;
+  --card-height: 340px;
+  --card-img-height: 150px;
+  --radius: 12px;
+  --glass: rgba(0, 0, 0, 0.6);
+  --border-light: rgba(255, 255, 255, 0.08);
+  --shadow: rgba(0, 0, 0, 0.4);
+  --code-bg: rgba(255, 255, 255, 0.06);
+  --hover-bg: rgba(229, 9, 20, 0.10);
+}
+
+html,
+body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Layout */
+.md-grid {
+  max-width: 68rem;
+}
+
+/* Header */
+.md-header {
+  box-shadow: none !important;
+}
+
+[data-md-color-scheme="default"] .md-header {
+  background: linear-gradient(180deg, #E50914, #B20710);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.10);
+  color: #ffffff;
+  box-shadow: none !important;
+}
+
+[data-md-color-scheme="slate"] .md-header {
+  background: linear-gradient(180deg, #1A1A1A, var(--card));
+  border-bottom: 1px solid rgba(229, 9, 20, 0.25);
+  color: #ffffff;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Site logo */
+.md-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.md-logo img {
+  border-radius: 10px;
+  height: 48px;
+}
+
+/* Site title — Netflix logo style */
+.md-header__title {
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+  text-transform: none;
+  text-shadow:
+    1.5px 1.5px 0 #000000,
+    -0.5px -0.5px 0 #000000,
+    0.5px -0.5px 0 #000000,
+    -0.5px 0.5px 0 #000000,
+    0.5px 0.5px 0 #000000;
+  flex-shrink: 0;
+}
+
+/* Fix header layout so search & palette don't overlap */
+.md-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+}
+
+.md-header__inner .md-header__option {
+  flex-shrink: 0;
+  order: 1;
+}
+
+.md-header__inner .md-search {
+  flex-shrink: 1;
+  min-width: 120px;
+  order: 2;
+}
+
+.md-header__inner .md-header__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  order: 0;
+}
+
+/* Navigation panel styling */
+.md-header .md-nav {
+  background: transparent;
+  padding: 12px;
+}
+
+.md-header .md-nav__link {
+  border-radius: 8px;
+  padding: 8px 10px;
+  transition: background .18s ease, transform .12s ease;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.md-header .md-nav__link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateX(4px);
+}
+
+.md-header .md-nav__link--active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff !important;
+  box-shadow: none;
+}
+
+
+.md-sidebar__inner {
+  padding-top: 10px;
+}
+
+/* Compact Sidebar */
+:root {
+  --md-nav-indent-width: 0;
+  --md-sidebar-width: 16rem;
+}
+
+/* Remove indentation from nested navigation items */
+.md-nav__item--nested>.md-nav>.md-nav__list {
+  padding-left: 0 !important;
+}
+
+.md-nav__item .md-nav__item {
+  padding-left: 0 !important;
+}
+
+.md-sidebar .md-nav__link {
+  white-space: normal;
+  height: auto;
+  line-height: normal;
+}
+
+.md-sidebar .md-nav {
+  padding: 12px;
+}
+
+.md-sidebar .md-nav__link {
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 10px;
+  transition: background .15s ease;
+}
+
+.md-sidebar .md-nav__link:hover {
+  background: var(--hover-bg);
+  color: var(--primary);
+}
+
+.md-sidebar .md-nav__link--active {
+  background: var(--primary);
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* Sidebar heading labels */
+.md-sidebar .md-nav__title {
+  color: #000000;
+  background: transparent;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.md-sidebar .md-nav--primary {
+  background: transparent;
+  padding: 12px;
+}
+
+/* Search box — remove the red square behind the input */
+.md-search__form {
+  background: transparent !important;
+  overflow: visible;
+}
+
+[data-md-color-scheme="default"] .md-search__icon {
+  color: #888888;
+}
+
+[data-md-color-scheme="default"] .md-search__input {
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 8px 14px 8px 40px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  color: #221F1F;
+}
+
+[data-md-color-scheme="slate"] .md-search__input {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 8px 14px 8px 40px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  color: #F5F5F1;
+}
+
+.md-search__input::placeholder {
+  color: var(--muted);
+}
+
+/* Main content area */
+.md-content {
+  background: transparent;
+  padding: 28px;
+}
+
+.grid-wrapper {
+  display: grid;
+  /* slightly wider cards so text breathes */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  width: 100%;
+  align-items: start;
+}
+
+.grid-cell {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 12px 30px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  /* fixed uniform size for all cards */
+  height: var(--card-height);
+}
+
+.grid-cell h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.15;
+  font-weight: 600;
+}
+
+.grid-cell ul {
+  margin: 8px 0 0 0;
+  padding-left: 1rem;
+  color: var(--muted);
+  flex: 1 1 auto;
+  overflow: auto;
+  font-size: 0.95rem;
+}
+
+.grid-cell img {
+  width: 100%;
+  height: var(--card-img-height);
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 8px;
+  flex: 0 0 auto;
+  display: block;
+}
+
+/* Ensure content is spaced so cards look balanced */
+.grid-cell {
+  justify-content: space-between;
+}
+
+/* Images gallery */
+.md-typeset img {
+  border-radius: 10px;
+  box-shadow: 0 10px 30px var(--shadow);
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+  .md-nav {
+    padding: 10px;
+  }
+
+  .md-header__inner {
+    padding: 12px;
+  }
+
+  .md-content {
+    padding: 18px;
+  }
+}
+
+/* Responsive: reduce card height on small screens */
+@media (max-width: 900px) {
+
+  /* On medium screens, slightly reduce card width and height */
+  :root {
+    --card-height: 320px;
+    --card-img-height: 140px;
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --card-height: auto;
+    --card-img-height: 140px;
+  }
+
+  .grid-cell {
+    height: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  :root {
+    --card-img-height: 120px;
+  }
+}
+
+/* =====================================================================
+   Titles & Headings
+   ===================================================================== */
+.md-typeset h1 {
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 2.2rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  text-shadow:
+    2px 2px 0 #000000,
+    -1px -1px 0 #000000,
+    1px -1px 0 #000000,
+    -1px 1px 0 #000000,
+    1px 1px 0 #000000;
+}
+
+.md-typeset h2 {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: -0.01em;
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 0.3rem;
+  margin-top: 2rem;
+  scroll-margin-top: 96px;
+}
+
+.md-typeset h3 {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  scroll-margin-top: 96px;
+}
+
+.md-typeset h4 {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 1.2rem;
+}
+
+.md-typeset h5 {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Provide a subtle focus style for keyboard users */
+a:focus,
+button:focus,
+.md-nav__link:focus {
+  outline: 3px solid rgba(229, 9, 20, 0.35);
+  outline-offset: 3px;
+}
+
+/* Utility: index cards (apply class `index-card` in markdown if desired) */
+.index-card {
+  display: block;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 18px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 12px 30px var(--shadow);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+
+.index-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 40px rgba(229, 9, 20, 0.15);
+}
+
+/* Netflix Wii-style selection glow */
+::selection {
+  background: rgba(229, 70, 80, 0.45);
+  color: #fff;
+}
+
+/* Code blocks */
+.md-typeset code {
+  background: var(--code-bg);
+  color: var(--text);
+}
+
+.md-typeset pre > code {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+}
+
+/* Tables */
+.md-typeset table:not(.highlighttable) {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+}
+
+.md-typeset table:not(.highlighttable) th {
+  background: rgba(229, 9, 20, 0.08);
+  color: var(--text);
+}
+
+.md-typeset table:not(.highlighttable) td {
+  border-top: 1px solid var(--border-light);
+}
+
+/* Footer */
+.md-footer {
+  background: #1A1A1A;
+  border-top: 1px solid rgba(229, 9, 20, 0.15);
+}
+
+[data-md-color-scheme="default"] .md-footer {
+  background: #E50914;
+  border-top: 1px solid rgba(0, 0, 0, 0.10);
+}
+
+/* End of custom styles */
+.grid-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.grid-cell {
+  background: var(--card);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 380px;
+  border: 1px solid var(--border-light);
+  /* Ajusta aquí si quieres más alto o más bajo */
+}
+
+.grid-cell img {
+  width: 100%;
+  height: 220px;
+  /* Todas las imágenes iguales */
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.grid-cell h3 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.grid-cell ul {
+  font-size: 0.9rem;
+}
+
+/* Timeline / before-after comparison component */
+.timeline-compare {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 1100px;
+  margin: 14px auto 28px auto;
+}
+
+.timeline-item {
+  width: 320px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 10px 12px 14px;
+  box-shadow: 0 8px 20px var(--shadow);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--border-light);
+}
+
+.timeline-item .label {
+  font-weight: 700;
+  color: #E50914;
+  font-size: 0.95rem;
+}
+
+.timeline-item .timeline-image-wrap {
+  width: 100%;
+  height: 220px;
+  /* fixed visual frame */
+  border-radius: 8px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.timeline-item .timeline-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+}
+
+.timeline-item .caption {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.timeline-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E50914;
+  font-size: 1.6rem;
+  min-width: 48px;
+}
+
+/* Subtle connector line behind arrow on wide screens */
+.timeline-compare::before {
+  content: "";
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(229, 9, 20, 0.10), rgba(229, 9, 20, 0.25));
+  width: calc(100% - 120px);
+  left: 60px;
+  top: calc(50% - 1px);
+  z-index: 0;
+  display: none;
+}
+
+.timeline-compare {
+  position: relative;
+}
+
+/*
+@media (min-width: 900px) {
+  .timeline-compare::before {
+    display: block;
+  }
+}
+*/
+
+@media (max-width: 760px) {
+  .timeline-item {
+    width: 100%;
+  }
+
+  .timeline-item .timeline-image {
+    height: 180px;
+  }
+
+  .timeline-arrow {
+    display: none;
+  }
+}
+/* =====================================================================
+   Mermaid diagrams — larger by default, click-to-zoom, breakout width
+   ===================================================================== */
+
+/* Container Material emits for fenced mermaid blocks.
+   - Center the SVG horizontally
+   - Allow horizontal scroll if the diagram exceeds the column width
+   - Give it a soft frame so it doesn't look like raw text
+*/
+.md-typeset pre.mermaid,
+.md-typeset .mermaid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 18px 12px;
+  margin: 18px 0 24px;
+  box-shadow: 0 6px 20px var(--shadow);
+  overflow-x: auto;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.md-typeset pre.mermaid:hover,
+.md-typeset .mermaid:hover {
+  box-shadow: 0 10px 28px rgba(229, 9, 20, 0.15);
+}
+
+/* The mermaid container holds the SVG. Make the rendered SVG fill the
+   container width — never exceed it, never push into the sidebar/TOC.
+   Complex diagrams that would overflow trigger horizontal scroll inside
+   the container, and clicking opens the diagram at full size in a new
+   tab (see mermaid-init.js). */
+.md-typeset pre.mermaid svg,
+.md-typeset .mermaid svg {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+/* While Mermaid is fetching/parsing, the <pre> shows raw source. Hide it
+   so users don't see the source flash before the SVG renders. */
+.md-typeset pre.mermaid:not([data-processed="true"]) code {
+  color: transparent;
+  user-select: none;
+}
+
+/* =====================================================================
+   Mermaid lightbox — click any diagram to open it at full screen size
+   ===================================================================== */
+
+/* Wrapper containing the mermaid div AND the badge. Sibling-based so
+   the badge is never inside .mermaid (Material would extract its text
+   as source code and break the render). */
+.md-typeset .rb-mermaid-wrap {
+  position: relative;
+  margin: 18px 0 24px;
+  cursor: zoom-in;
+}
+
+/* Placeholder kept while the diagram is moved into the lightbox, so
+   article layout doesn't reflow. */
+.md-typeset .rb-mermaid-placeholder {
+  background: var(--bg);
+  border: 1px dashed var(--border-light);
+  border-radius: 10px;
+}
+
+/* Top-right corner badge — bold colours so it's obviously interactive. */
+.md-typeset .rb-zoom-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  background: var(--primary);
+  color: #ffffff !important;
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 6px 18px var(--shadow);
+  opacity: 1;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.md-typeset .rb-zoom-badge:hover {
+  background: #B20710;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(229, 9, 20, 0.4);
+}
+
+/* Full-screen overlay. */
+#rb-mermaid-lightbox {
+  position: fixed;
+  inset: 0;
+  /* Solid backdrop (more opaque) instead of backdrop-filter: blur(...) —
+     blur compositor work hurts wheel-zoom framerate significantly. */
+  background: rgba(0, 0, 0, 0.96);
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 48px 56px;
+  box-sizing: border-box;
+  opacity: 1;
+  /* Isolate from the rest of the page to skip layout/paint propagation. */
+  contain: layout style paint;
+}
+
+#rb-mermaid-lightbox.rb-lb-open {
+  display: flex !important;
+}
+
+/* SVG stage — takes up the whole modal and hosts the cloned SVG. */
+#rb-mermaid-lightbox .rb-lb-stage {
+  width: 95vw;
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+}
+
+/* When a mermaid diagram is moved into the stage, wrap it visually in a
+   dark card so the diagram's gray arrows, subgraph borders and labels
+   are readable against the dark backdrop. */
+#rb-mermaid-lightbox .rb-lb-stage > div.mermaid {
+  background: #1E1E1E;
+  padding: 28px 32px;
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+[data-md-color-scheme="default"] #rb-mermaid-lightbox .rb-lb-stage > div.mermaid {
+  background: #FFFFFF;
+}
+
+/* The moved diagram (or any other content placed in the stage).
+   - max-width / max-height keep it inside the modal.
+   - transform-origin: center so wheel zoom centers correctly.
+   - NO CSS transition — JS already drives transform writes at RAF rate.
+   - NO `will-change: transform` here. JS toggles it on for the duration
+     of interaction (wheel/drag) and removes it after idle so the SVG
+     re-rasterizes crisp at the final scale (bilinear filtering on a
+     pre-rasterized GPU layer is what was causing the blur). */
+#rb-mermaid-lightbox .rb-lb-stage > * {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  transform-origin: center center;
+  transition: none;
+  pointer-events: auto;
+}
+
+#rb-mermaid-lightbox .rb-lb-stage svg {
+  display: block;
+}
+
+/* Close button. */
+#rb-mermaid-lightbox .rb-lb-close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+  z-index: 2;
+}
+
+#rb-mermaid-lightbox .rb-lb-close:hover {
+  background: rgba(229, 9, 20, 0.5);
+  transform: scale(1.08);
+}
+
+/* Bottom hint. */
+#rb-mermaid-lightbox .rb-lb-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 0.85rem;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (max-width: 720px) {
+  .rb-zoom-badge {
+    font-size: 0.72rem;
+    padding: 5px 10px;
+  }
+
+  #rb-mermaid-lightbox {
+    padding: 16px 16px 40px;
+  }
+
+  #rb-mermaid-lightbox .rb-lb-stage {
+    width: 100vw;
+    height: 84vh;
+  }
+}
