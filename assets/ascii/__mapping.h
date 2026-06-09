@@ -9,6 +9,7 @@
 // -------------------------------------------------------
 
 #include "logo.h"
+#include "loginImage.h"
 
 // Future art assets will be added here:
 // #include "other_art.h"
