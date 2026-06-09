@@ -1,5 +1,7 @@
-<center><h1>Problem situation - Object Oriented Programming</h1></center>
-<center><img src="assets/__README__/loginAlpha.png" width="50%" alt="Login Alpha" /></center>
+<h1 align="center">Problem situation - Object Oriented Programming</h1>
+<p align="center">
+    <img src="assets/__README__/loginAlpha.png" width="50%" alt="Login Alpha" />
+</p>
 
 ## Team members
 | Name | Role | 
