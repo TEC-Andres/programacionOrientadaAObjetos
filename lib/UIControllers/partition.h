@@ -63,7 +63,7 @@ private:
                        int &outX, int &outY) const;
     void focusFirstFocusable();
     IComponent* focusedComponent() const;
-    void moveFocus(int dRegion, int dComp);
+    void moveFocus(int dx, int dy);
 
     Type type_;
     float r1_, r2_;
