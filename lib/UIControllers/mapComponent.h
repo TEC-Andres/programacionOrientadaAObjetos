@@ -15,6 +15,8 @@
 
 namespace ui {
 
+class Partition;
+
 /**
  * @brief Construct a new MapComponent object.
  * Initializes the MapComponent with an optional frames-per-second (FPS) setting for rendering. The constructor sets up internal state for managing render callbacks, grid cells, focus, and input handling.
@@ -47,6 +49,8 @@ public:
     bool moveLeft();
     bool moveRight();
     bool activate();
+
+    void setPartition(Partition *p) { partition_ = p; }
 
     void render(std::ostream &out);
     bool handleInput();
@@ -82,6 +86,7 @@ private:
     int gridColumns_;
     int attachedCount_;
     std::string background_;
+    Partition *partition_ = nullptr;
 };
 
 } // namespace ui
