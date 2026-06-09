@@ -8,6 +8,32 @@
 
 namespace ui {
 
+/**
+ * @brief A text box component for terminal UIs.
+ * TextBox is a focusable component that allows user input. It supports a maximum length, optional password mode (which masks input), and customizable colors for background, foreground, and border. The component can be aligned within its container and has callbacks for when the text changes or is submitted.
+ * Constructor parameters:
+ * @param maxLength The maximum number of characters allowed in the text box.
+ * @param bgColor The background color of the text box (hex string, e.g. "#1a73e8").
+ * @param fgColor The foreground (text) color of the text box (hex string, e.g. "#ffffff").
+ * @param borderColor The color of the text box border (hex string, e.g. "#888888").
+ * @param passwordMode If true, the text box will mask input with '*' characters.
+ * @param align The alignment of the text box within its container (default is Align::TopLeft).
+ * Code example:
+ * ```cpp
+ * ui::TextBox txtBox(
+ *   ui::maxLength=30,
+ *   ui::bgColor="#2d2d2d",
+ *   ui::fgColor="#00ff00",
+ *   ui::borderColor="#555555",
+ *   ui::passwordMode=false,
+ *   ui::align=ui::Align::MiddleCenter
+ * );
+ * txtBox.setOnSubmit([](const std::string &text) {
+ *   std::cout << "Submitted text: " << text << std::endl;
+ * });
+ * std::cout << txtBox.toString();
+ * ```
+ */
 class TextBox : public ComponentBase {
 public:
     TextBox(
