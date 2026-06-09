@@ -174,6 +174,15 @@ std::string ObjectRenderer::toString() const
 {
     if (lines_.empty()) return "";
 
+    // When a container (like Partition) handles positioning, output raw lines
+    if (externalPos_) {
+        std::ostringstream ss;
+        for (const auto &line : lines_) {
+            ss << line << '\n';
+        }
+        return ss.str();
+    }
+
     int consoleW = ComponentBase::getConsoleWidth();
     int consoleH = ComponentBase::getConsoleHeight();
     int ax = anchorX();
