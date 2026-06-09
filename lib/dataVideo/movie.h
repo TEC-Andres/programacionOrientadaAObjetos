@@ -6,22 +6,16 @@
 #include <cstdint>
 #include "video.h"
 
-using namespace std;
-
-class Movie {
+class Movie : public Video {
 private:
-    Video video;
-    string director;
+    std::string director;
 public:
     Movie();
 
-    Movie(Video video, string director);
+    Movie(uint32_t id, std::string name, uint32_t length, std::string genre, uint8_t rating, std::string director);
 
-    Video getVideo();
-    void setVideo(Video video);
-
-    string getDirector();
-    void setDirector(string director);
+    std::string getDirector();
+    void setDirector(std::string director);
 };
 
 #endif

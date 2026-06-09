@@ -1,20 +1,11 @@
 #include "episodes.h"
 
-Episodes::Episodes(){
+Episodes::Episodes() : Series() {
     episodeNumber = 0;
 }
 
-Episodes::Episodes(Series series, uint32_t episodeNumber){
-    this -> series = series;
+Episodes::Episodes(uint32_t id, std::string name, uint32_t length, std::string genre, uint8_t rating, uint32_t season, std::string title, uint32_t episodeNumber) : Series(id, name, length, genre, rating, season, title) {
     this -> episodeNumber = episodeNumber;
-}
-
-Series Episodes::getSeries(){
-    return series;
-}
-
-void Episodes::setSeries(Series series){
-    this -> series = series;
 }
 
 uint32_t Episodes::getEpisodeNumber(){

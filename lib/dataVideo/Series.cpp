@@ -1,22 +1,13 @@
 #include "series.h"
 
-Series::Series() {
+Series::Series() : Video() {
     season = 0;
     title = "";
 }
 
-Series::Series(Video video, uint32_t season, string title){
-    this -> video = video;
+Series::Series(uint32_t id, std::string name, uint32_t length, std::string genre, uint8_t rating, uint32_t season, std::string title) : Video(id, name, length, genre, rating) {
     this -> season = season;
     this -> title = title;
-}
-
-Video Series::getVideo() {
-    return video;
-}
-
-void Series::setVideo(Video video){
-    this -> video = video;
 }
 
 uint32_t Series::getSeason(){
@@ -27,10 +18,10 @@ void Series::setSeason(uint32_t season){
     this -> season = season;
 }
 
-string Series::getTitle() {
+std::string Series::getTitle() {
     return title;
 }
 
-void Series::setTitle(string title){
+void Series::setTitle(std::string title){
     this -> title = title;
 }

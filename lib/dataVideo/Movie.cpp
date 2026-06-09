@@ -1,26 +1,17 @@
 #include "movie.h"
 
-Movie::Movie(){
+Movie::Movie() : Video() {
     director = "";
 }
 
-Movie::Movie(Video video, string director) {
-    this -> video = video;
+Movie::Movie(uint32_t id, std::string name, uint32_t length, std::string genre, uint8_t rating, std::string director) : Video(id, name, length, genre, rating) {
     this -> director = director;
 }
 
-Video Movie::getVideo() {
-    return video;
-}
-
-void Movie::setVideo(Video video) {
-    this -> video = video;
-}
-
-string Movie::getDirector() {
+std::string Movie::getDirector() {
     return director;
 }
 
-void Movie::setDirector(string director) {
+void Movie::setDirector(std::string director) {
     this -> director = director;
 }

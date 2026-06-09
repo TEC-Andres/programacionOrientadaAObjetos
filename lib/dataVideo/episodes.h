@@ -6,19 +6,13 @@
 #include <cstdint>
 #include "series.h"
 
-using namespace std;
-
-class Episodes {
+class Episodes : public Series {
 private:
-    Series series;
     uint32_t episodeNumber;
 public:
     Episodes();
 
-    Episodes(Series series, uint32_t episodeNumber);
-
-    Series getSeries();
-    void setSeries(Series series);
+    Episodes(uint32_t id, std::string name, uint32_t length, std::string genre, uint8_t rating, uint32_t season, std::string title, uint32_t episodeNumber);
 
     uint32_t getEpisodeNumber();
     void setEpisodeNumber(uint32_t episodeNumber);

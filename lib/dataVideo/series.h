@@ -6,26 +6,21 @@
 #include <cstdint>
 #include "video.h"
 
-using namespace std;
 
-class Series {
+class Series : public Video {
 private:
-    Video video;
     uint32_t season;
-    string title;
+    std::string title;
 public:
     Series();
 
-    Series(Video video, uint32_t season, string title);
-
-    Video getVideo();
-    void setVideo(Video video);
+    Series(uint32_t id, std::string name, uint32_t length, std::string genre, uint8_t rating, uint32_t season, std::string title);
 
     uint32_t getSeason();
     void setSeason(uint32_t season);
 
-    string getTitle();
-    void setTitle(string title);
+    std::string getTitle();
+    void setTitle(std::string title);
 };
 
 #endif
