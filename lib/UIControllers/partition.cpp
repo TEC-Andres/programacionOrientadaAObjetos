@@ -2,7 +2,9 @@
 #include <sstream>
 #include <algorithm>
 #include <cstdlib>
+#include <climits>
 #include <string>
+#include "UIModals/objectRenderer.h"
 
 #if defined(_WIN32) || defined(_WIN64)
     #ifndef NOMINMAX
@@ -195,18 +197,24 @@ void Partition::render(std::ostream &out)
             if (comp) comp->setUsesExternalPositioning(true);
         }
 
-        // Fill region background if set
-        if (!reg.bgColor_.empty()) {
-            int r = 0, g = 0, b = 0;
+        // Parse background color once
+        int bgR = 0, bgG = 0, bgB = 0;
+        bool hasBg = !reg.bgColor_.empty();
+        std::string bgAnsi;
+        if (hasBg) {
             if (reg.bgColor_.size() == 7 && reg.bgColor_[0] == '#') {
                 try {
-                    r = std::stoi(reg.bgColor_.substr(1,2), nullptr, 16);
-                    g = std::stoi(reg.bgColor_.substr(3,2), nullptr, 16);
-                    b = std::stoi(reg.bgColor_.substr(5,2), nullptr, 16);
+                    bgR = std::stoi(reg.bgColor_.substr(1,2), nullptr, 16);
+                    bgG = std::stoi(reg.bgColor_.substr(3,2), nullptr, 16);
+                    bgB = std::stoi(reg.bgColor_.substr(5,2), nullptr, 16);
                 } catch (...) {}
             }
-            std::string bgAnsi = "\x1b[48;2;" + std::to_string(r) + ';'
-                               + std::to_string(g) + ';' + std::to_string(b) + 'm';
+            bgAnsi = "\x1b[48;2;" + std::to_string(bgR) + ';'
+                   + std::to_string(bgG) + ';' + std::to_string(bgB) + 'm';
+        }
+
+        // Fill region background if set
+        if (hasBg) {
             for (int row = 0; row < reg.h_; ++row) {
                 out << "\x1b[" << (reg.y_ + row + 1) << ";" << (reg.x_ + 1) << "H";
                 out << bgAnsi;
@@ -221,6 +229,16 @@ void Partition::render(std::ostream &out)
             int compW = comp->width();
             int compH = comp->height();
             if (compW < 6) compW = 6;
+
+            // Fit resizable components within the region
+            ObjectRenderer *objRend = dynamic_cast<ObjectRenderer*>(comp);
+            if ((compW > reg.w_ || compH > reg.h_) && objRend && objRend->resizable()) {
+                objRend->fitToBounds(reg.w_, reg.h_);
+                compW = objRend->width();
+                compH = objRend->height();
+                if (compW < 6) compW = 6;
+                if (compH < 1) compH = 1;
+            }
 
             int cx, cy;
             calcRegionPos(comp->alignment(), compW, compH,
@@ -262,8 +280,24 @@ void Partition::render(std::ostream &out)
                 std::string line = (next == std::string::npos)
                     ? content.substr(pos)
                     : content.substr(pos, next - pos);
+
                 out << "\x1b[" << (cy + lineNum + 1) << ";" << (cx + 1) << "H";
+
+                // Only re-establish the region background inside ANSI art
+                // (ObjectRenderer). Regular components (Button, TextBox, …)
+                // have their own backgrounds and must not be overridden.
+                if (hasBg && objRend) {
+                    out << bgAnsi;
+                    std::string resetStr = "\x1b[0m";
+                    std::string replacement = resetStr + bgAnsi;
+                    size_t p = 0;
+                    while ((p = line.find(resetStr, p)) != std::string::npos) {
+                        line.replace(p, resetStr.length(), replacement);
+                        p += replacement.length();
+                    }
+                }
                 out << line;
+
                 ++lineNum;
                 if (next == std::string::npos) break;
                 pos = next + 1;
@@ -320,7 +354,7 @@ void Partition::focusFirstFocusable()
     }
 }
 
-void Partition::moveFocus(int dRegion, int dComp)
+void Partition::moveFocus(int dx, int dy)
 {
     if (!hasFocus_) return;
     int numRegions = 0;
@@ -331,28 +365,12 @@ void Partition::moveFocus(int dRegion, int dComp)
         case FourSide: numRegions = 4; break;
     }
 
-    // Deselect current
     IComponent *cur = focusedComponent();
     if (cur) cur->setSelected(false);
 
-    // Try moving within current region first
-    if (dComp != 0) {
-        auto &comps = regions_[focusRegion_].comps_;
-        int n = (int)comps.size();
-        int ci = focusComp_;
-        for (int i = 1; i <= n; ++i) {
-            int next = (ci + (dComp > 0 ? i : -i) + n) % n;
-            if (comps[next] && comps[next]->isFocusable()) {
-                focusComp_ = next;
-                comps[next]->setSelected(true);
-                return;
-            }
-        }
-    }
-
-    // Try adjacent region
-    if (dRegion != 0) {
-        int ri = focusRegion_ + dRegion;
+    // Horizontal: try region switching first
+    if (dx != 0) {
+        int ri = focusRegion_ + dx;
         while (ri >= 0 && ri < numRegions) {
             auto &comps = regions_[ri].comps_;
             for (int ci = 0; ci < (int)comps.size(); ++ci) {
@@ -363,7 +381,84 @@ void Partition::moveFocus(int dRegion, int dComp)
                     return;
                 }
             }
-            ri += dRegion;
+            ri += dx;
+        }
+        // No adjacent region with focusable → fall through to within-region horizontal
+    }
+
+    // Build list of focusable components in current region with their visual centers
+    struct Item { int idx, cx, cy; };
+    std::vector<Item> items;
+    {
+        auto &comps = regions_[focusRegion_].comps_;
+        for (int i = 0; i < (int)comps.size(); ++i) {
+            if (!comps[i] || !comps[i]->isFocusable()) continue;
+            int cw = comps[i]->width();
+            int ch = comps[i]->height();
+            if (cw < 6) cw = 6;
+            int cx, cy;
+            calcRegionPos(comps[i]->alignment(), cw, ch,
+                          regions_[focusRegion_].w_, regions_[focusRegion_].h_, cx, cy);
+            items.push_back({i, cx + cw / 2, cy + ch / 2});
+        }
+    }
+
+    if (!items.empty()) {
+        int curCx = 0, curCy = 0;
+        for (auto &it : items) {
+            if (it.idx == focusComp_) { curCx = it.cx; curCy = it.cy; break; }
+        }
+
+        int best = -1;
+        long long bestDist = LLONG_MAX;
+
+        for (auto &it : items) {
+            if (it.idx == focusComp_) continue;
+            int dxc = it.cx - curCx;
+            int dyc = it.cy - curCy;
+
+            bool ok = true;
+            if (dx > 0) ok = ok && (dxc > 0);
+            else if (dx < 0) ok = ok && (dxc < 0);
+            if (dy > 0) ok = ok && (dyc > 0);
+            else if (dy < 0) ok = ok && (dyc < 0);
+            if (!ok) continue;
+
+            long long d2 = (long long)dxc * dxc + (long long)dyc * dyc;
+            if (d2 < bestDist) { bestDist = d2; best = it.idx; }
+        }
+
+        // No candidate in direction → wrap to opposite side
+        if (best < 0) {
+            if (dy != 0) {
+                // Vertical wrap: find farthest in opposite vertical direction
+                int wrapIdx = -1;
+                int extreme = (dy > 0) ? INT_MAX : INT_MIN;
+                for (auto &it : items) {
+                    if (it.idx == focusComp_) continue;
+                    if ((dy > 0 && it.cy < extreme) || (dy < 0 && it.cy > extreme)) {
+                        extreme = it.cy; wrapIdx = it.idx;
+                    }
+                }
+                best = wrapIdx;
+            } else if (dx != 0) {
+                // Horizontal wrap: find farthest in opposite horizontal direction
+                int wrapIdx = -1;
+                int extreme = (dx > 0) ? INT_MAX : INT_MIN;
+                for (auto &it : items) {
+                    if (it.idx == focusComp_) continue;
+                    if ((dx > 0 && it.cx < extreme) || (dx < 0 && it.cx > extreme)) {
+                        extreme = it.cx; wrapIdx = it.idx;
+                    }
+                }
+                best = wrapIdx;
+            }
+        }
+
+        if (best >= 0) {
+            focusComp_ = best;
+            regions_[focusRegion_].comps_[best]->setSelected(true);
+            return;
         }
     }
 
@@ -380,20 +475,23 @@ bool Partition::handleKey(int key)
 
     IComponent *focused = focusedComponent();
 
-    // Arrows: navigate within partition
-    if (key == 75 || key == 'D') { // Left arrow
+    // Directional navigation:
+    //   Up / Down      → move vertically  within region
+    //   Left / Right   → try adjacent region first,
+    //                    fall back to horizontal within-region
+    if (key == 72 || key == 'A') { // Up
         moveFocus(0, -1);
         return true;
     }
-    if (key == 77 || key == 'C') { // Right arrow
+    if (key == 80 || key == 'B') { // Down
         moveFocus(0, 1);
         return true;
     }
-    if (key == 72 || key == 'A') { // Up arrow
+    if (key == 75 || key == 'D') { // Left
         moveFocus(-1, 0);
         return true;
     }
-    if (key == 80 || key == 'B') { // Down arrow
+    if (key == 77 || key == 'C') { // Right
         moveFocus(1, 0);
         return true;
     }
