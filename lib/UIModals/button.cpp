@@ -58,7 +58,7 @@ std::string Button::toString() const
     };
 
     ss << borderFg();
-    for (int i = 0; i < w; ++i) ss << "█";
+    for (int i = 0; i < w; ++i) ss << "▄";
     ss << render_.reset() << '\n';
 
     ss << borderFg() << "█";
@@ -81,8 +81,9 @@ std::string Button::toString() const
     ss << borderFg() << "█";
     ss << render_.reset() << '\n';
 
+    ss << render_.reset();
     ss << borderFg();
-    for (int i = 0; i < w; ++i) ss << "█";
+    for (int i = 0; i < w; ++i) ss << "▀";
     ss << render_.reset() << '\n';
 
     return ss.str();
