@@ -52,6 +52,8 @@ UI_DEFINE_PARAM(displacementY, float)
 
 UI_DEFINE_PARAM(maxLength, int)
 UI_DEFINE_PARAM(passwordMode, bool)
+UI_DEFINE_PARAM(ghostMessage, std::string)
+UI_DEFINE_PARAM(ghostColor, std::string)
 
 UI_DEFINE_PARAM(segment1Visible, int)
 UI_DEFINE_PARAM(segment1Text, std::string)
