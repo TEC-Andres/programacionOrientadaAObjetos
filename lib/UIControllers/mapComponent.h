@@ -8,10 +8,10 @@
 #include <thread>
 #include "_component.h"
 
-#define UP_ARROW    72
-#define DOWN_ARROW  80
-#define LEFT_ARROW  75
-#define RIGHT_ARROW 77
+#define UP_ARROW    0x100
+#define DOWN_ARROW  0x101
+#define LEFT_ARROW  0x102
+#define RIGHT_ARROW 0x103
 
 namespace ui {
 
