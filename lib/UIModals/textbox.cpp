@@ -21,6 +21,12 @@ TextBox::TextBox(
     align_ = align;
 }
 
+/**
+ * @brief Handle key input for the TextBox component.
+ * This method processes key events when the TextBox is selected. It supports character input, backspace for deletion, and submission with the Enter key. The Escape key is not handled here and will be passed to the parent component.
+ * @param key The integer code of the key that was pressed.
+ * @return true if the key event was handled, false otherwise.
+ */
 bool TextBox::handleKey(int key)
 {
     if (!selected_) return false;
@@ -57,6 +63,11 @@ bool TextBox::handleKey(int key)
     return false;
 }
 
+/**
+ * @brief Convert the TextBox component to a string representation.
+ * This method generates a string that visually represents the TextBox, including its borders and content. It takes into account the current text, whether the TextBox is in password mode (masking input with '*'), and the selected state (which may change colors). The output can be printed to the console to display the TextBox.
+ * @return A string representing the TextBox.
+ */
 std::string TextBox::toString() const
 {
     int w = width_;
