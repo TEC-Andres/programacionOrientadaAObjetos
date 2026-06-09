@@ -1,4 +1,5 @@
 #include "mapComponent.h"
+#include "partition.h"
 #include <iostream>
 #include <sstream>
 #include <algorithm>
@@ -94,7 +95,8 @@ MapComponent::MapComponent(int framesPerSecond, int gridColumns)
       lastConsoleWidth_(0),
       lastConsoleHeight_(0),
       gridColumns_(gridColumns > 0 ? gridColumns : 3),
-      attachedCount_(0)
+      attachedCount_(0),
+      partition_(nullptr)
 {
 }
 
@@ -458,6 +460,13 @@ void MapComponent::render(std::ostream &out)
     }
     out << cbStr;
 
+    // If a partition is set, update boundaries and use it instead of the grid
+    if (partition_) {
+        partition_->update(cbRows);
+        partition_->render(out);
+        return;
+    }
+
     // --- Render cells with overlap avoidance ---
     for (auto &cell : cells_) {
         if (!cell.component) continue;
@@ -600,6 +609,9 @@ bool MapComponent::handleInput()
     int ch = _getch();
     if (ch == 0xE0 || ch == 0x00) {
         ch = _getch();
+        if (partition_) {
+            if (partition_->handleKey(ch)) return true;
+        }
         switch (ch) {
             case UP_ARROW: moveUp(); return true;
             case DOWN_ARROW: moveDown(); return true;
@@ -607,7 +619,11 @@ bool MapComponent::handleInput()
             case RIGHT_ARROW: moveRight(); return true;
         }
     } else {
-        // Delegate to the focused component first
+        // Delegate to partition first
+        if (partition_) {
+            if (partition_->handleKey(ch)) return true;
+        }
+        // Delegate to the focused component in grid
         if (hasFocus_) {
             for (auto &cell : cells_) {
                 if (cell.component && cell.row == focusRow_ && cell.col == focusCol_) {
@@ -645,17 +661,34 @@ bool MapComponent::handleInput()
                 char seq[2];
                 if (read(STDIN_FILENO, &seq[0], 1) > 0 && seq[0] == '[') {
                     if (read(STDIN_FILENO, &seq[1], 1) > 0) {
-                        switch (seq[1]) {
-                            case 'A': moveUp(); handled = true; break;
-                            case 'B': moveDown(); handled = true; break;
-                            case 'D': moveLeft(); handled = true; break;
-                            case 'C': moveRight(); handled = true; break;
+                        if (partition_) {
+                            int ak = 0;
+                            switch (seq[1]) {
+                                case 'A': ak = 72; break;
+                                case 'B': ak = 80; break;
+                                case 'D': ak = 75; break;
+                                case 'C': ak = 77; break;
+                            }
+                            if (ak && partition_->handleKey(ak)) {
+                                handled = true;
+                            }
+                        }
+                        if (!handled) {
+                            switch (seq[1]) {
+                                case 'A': moveUp(); handled = true; break;
+                                case 'B': moveDown(); handled = true; break;
+                                case 'D': moveLeft(); handled = true; break;
+                                case 'C': moveRight(); handled = true; break;
+                            }
                         }
                     }
                 }
             } else {
-                // Delegate to the focused component first
-                if (hasFocus_) {
+                // Delegate to partition first
+                if (partition_ && partition_->handleKey((unsigned char)ch)) {
+                    handled = true;
+                }
+                if (!handled) {
                     for (auto &cell : cells_) {
                         if (cell.component && cell.row == focusRow_ && cell.col == focusCol_) {
                             if (cell.component->handleKey((unsigned char)ch)) {
@@ -710,6 +743,9 @@ void MapComponent::run()
 #endif
 
     focusFirstFocusable();
+    if (partition_) {
+        partition_->setFocus(true);
+    }
     running_ = true;
 
     if (!background_.empty()) {
