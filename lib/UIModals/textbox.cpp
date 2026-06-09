@@ -31,9 +31,8 @@ bool TextBox::handleKey(int key)
 {
     if (!selected_) return false;
 
-    // Enter submits the current text
+    // Enter is handled but does nothing — no activation
     if (key == 13 || key == 10) {
-        if (onSubmit_) onSubmit_(text_);
         return true;
     }
 
@@ -116,7 +115,7 @@ std::string TextBox::toString() const
 
     // Line 1: top border
     ss << borderFg();
-    for (int i = 0; i < w; ++i) ss << "█";
+    for (int i = 0; i < w; ++i) ss << "▄";
     ss << render_.reset() << '\n';
 
     // Line 2: content
@@ -136,7 +135,7 @@ std::string TextBox::toString() const
 
     // Line 3: bottom border
     ss << borderFg();
-    for (int i = 0; i < w; ++i) ss << "█";
+    for (int i = 0; i < w; ++i) ss << "▀";
     ss << render_.reset() << '\n';
 
     return ss.str();
