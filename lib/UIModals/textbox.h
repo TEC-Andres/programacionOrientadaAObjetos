@@ -42,7 +42,9 @@ public:
         const std::string &fgColor = "#ffffff",
         const std::string &borderColor = "#888888",
         bool passwordMode = false,
-        Align align = Align::TopLeft
+        Align align = Align::TopLeft,
+        const std::string &ghostMessage = "",
+        const std::string &ghostColor = "#888888"
     );
 
     template<typename... NPs,
@@ -55,6 +57,8 @@ public:
         , borderColor_("#888888")
         , passwordMode_(false)
         , selected_(false)
+        , ghostMessage_("")
+        , ghostColor_("#888888")
     {
         align_ = Align::TopLeft;
         (apply_param(std::forward<NPs>(params)), ...);
@@ -69,6 +73,11 @@ public:
 
     void setText(const std::string &text) { text_ = text; }
     const std::string &text() const { return text_; }
+
+    void setGhostMessage(const std::string &msg) { ghostMessage_ = msg; }
+    const std::string &ghostMessage() const { return ghostMessage_; }
+    void setGhostColor(const std::string &color) { ghostColor_ = color; }
+    const std::string &ghostColor() const { return ghostColor_; }
 
     void setOnSubmit(std::function<void(const std::string&)> cb) { onSubmit_ = cb; }
     void setOnChange(std::function<void(const std::string&)> cb) { onChange_ = cb; }
@@ -86,6 +95,8 @@ private:
     void apply_param(Param<float, displacementY_tag> p) { displacementY_ = p.value; }
     void apply_param(Param<int, maxLength_tag> p) { maxLength_ = p.value; }
     void apply_param(Param<bool, passwordMode_tag> p) { passwordMode_ = p.value; }
+    void apply_param(Param<std::string, ghostMessage_tag> p) { ghostMessage_ = p.value; }
+    void apply_param(Param<std::string, ghostColor_tag> p) { ghostColor_ = p.value; }
 
     std::string text_;
     int maxLength_;
@@ -94,6 +105,8 @@ private:
     std::string borderColor_;
     bool passwordMode_;
     bool selected_;
+    std::string ghostMessage_;
+    std::string ghostColor_;
     std::function<void(const std::string&)> onSubmit_;
     std::function<void(const std::string&)> onChange_;
 };

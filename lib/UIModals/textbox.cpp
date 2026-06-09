@@ -9,7 +9,9 @@ TextBox::TextBox(
     const std::string &fgColor,
     const std::string &borderColor,
     bool passwordMode,
-    Align align)
+    Align align,
+    const std::string &ghostMessage,
+    const std::string &ghostColor)
     : ComponentBase(30, 3)
     , maxLength_(maxLength)
     , bgColor_(bgColor)
@@ -17,6 +19,8 @@ TextBox::TextBox(
     , borderColor_(borderColor)
     , passwordMode_(passwordMode)
     , selected_(false)
+    , ghostMessage_(ghostMessage)
+    , ghostColor_(ghostColor)
 {
     align_ = align;
 }
@@ -98,13 +102,21 @@ std::string TextBox::toString() const
         return hasBorder ? render_.fg(borderR, borderG, borderB) : "";
     };
 
-    // Build display text: mask with '*' if password mode
-    std::string displayText = passwordMode_
-        ? std::string(text_.size(), '*')
-        : text_;
+    // Determine if we should show ghost text
+    bool showGhost = text_.empty() && !ghostMessage_.empty() && !selected_;
 
-    // Append cursor indicator when selected
-    if (selected_) {
+    // Build display text: mask with '*' if password mode
+    std::string displayText;
+    if (showGhost) {
+        displayText = ghostMessage_;
+    } else {
+        displayText = passwordMode_
+            ? std::string(text_.size(), '*')
+            : text_;
+    }
+
+    // Append cursor indicator when selected (not when showing ghost)
+    if (selected_ && !showGhost) {
         displayText += '|';
     }
 
@@ -122,7 +134,15 @@ std::string TextBox::toString() const
     ss << borderFg() << "█";
     ss << render_.reset();
     if (hasBg) ss << render_.bg(br, bg, bb);
-    if (hasFg) ss << render_.fg(fr, fg, fb);
+
+    // Use ghost color for ghost text, normal fg otherwise
+    if (showGhost) {
+        int gr = 0, gg = 0, gb = 0;
+        bool hasGhost = render_.parseHex(ghostColor_, gr, gg, gb);
+        if (hasGhost) ss << render_.fg(gr, gg, gb);
+    } else {
+        if (hasFg) ss << render_.fg(fr, fg, fb);
+    }
 
     // Left-align text in content area
     int textLen = (int)displayText.size();
@@ -134,6 +154,7 @@ std::string TextBox::toString() const
     ss << render_.reset() << '\n';
 
     // Line 3: bottom border
+    ss << render_.reset();
     ss << borderFg();
     for (int i = 0; i < w; ++i) ss << "▀";
     ss << render_.reset() << '\n';
