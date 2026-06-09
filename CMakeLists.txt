@@ -11,7 +11,7 @@ file(GLOB_RECURSE LIB_SOURCES
 
 add_library(SituacionProblemaLib ${LIB_SOURCES})
 
-add_executable(SituacionProblema src/test.cpp)
+add_executable(SituacionProblema src/main.cpp)
 target_link_libraries(SituacionProblema PRIVATE SituacionProblemaLib)
 
 # Place final executable into a top-level __release__ directory inside the source tree
