@@ -2,9 +2,11 @@
 #include "UIModals/locationBar.h"
 #include "UIModals/messagebox.h"
 #include "UIModals/button.h"
+#include "UIModals/textbox.h"
 #include "UIModals/objectRenderer.h"
 #include "ascii/__mapping.h"
 #include <iostream>
+#include <sstream>
 #if defined(_WIN32) || defined(_WIN64)
     #include <conio.h>
 #endif
@@ -30,6 +32,15 @@ int main(int argc, char* argv[]) {
 
     ui::MapComponent map(30, 3);
     map.setBackground("#111111");
+
+    ui::TextBox txtBox(
+        ui::component::width = 30,
+        ui::component::bgColor = "#2d2d2d",
+        ui::component::fgColor = "#00ff00",
+        ui::component::borderColor = "#555555",
+        ui::component::align = ui::Align::MiddleCenter,
+        ui::component::maxLength = 20
+    );
 
     ui::Button btnExit(
         ui::component::text = " Exit ",
@@ -65,15 +76,20 @@ int main(int argc, char* argv[]) {
     );
 
     // Activation callbacks for buttons
-    btnSettings.setOnActivate([]() {
-        std::cout << "\x1b[2J\x1b[H\x1b[33mSettings activated!\x1b[0m\n";
+    btnSettings.setOnActivate([&]() {
+        std::cout << "\x1b[2J\x1b[H";
+        if (txtBox.text() == "ping") {
+            std::cout << "\x1b[32mpong!\x1b[0m\n";
+        } else {
+            std::cout << "\x1b[31mit failed\x1b[0m\n";
+        }
         std::cout << "Press any key to return...\n";
         #if defined(_WIN32) || defined(_WIN64)
             _getch();
         #elif defined(__APPLE__) || defined(__MACH__)
             std::cin.get();
         #else
-            std::cin.get(); // Fallback for Linux or other systems
+            std::cin.get();
         #endif
     });
 
@@ -85,7 +101,7 @@ int main(int argc, char* argv[]) {
         #elif defined(__APPLE__) || defined(__MACH__)
             std::cin.get();
         #else
-            std::cin.get(); // Fallback for Linux or other systems
+            std::cin.get();
         #endif
     });
 
@@ -93,10 +109,18 @@ int main(int argc, char* argv[]) {
         map.stop();
     });
 
+    txtBox.setOnSubmit([&](const std::string &text) {
+        std::ostringstream oss;
+        if (text == "ping") {
+            oss << "\x1b[H\x1b[2K\x1b[32mpong!\x1b[0m";
+        }
+        std::cout << oss.str() << std::flush;
+    });
+
     map.bind(bar);
-    // map.bind(msgBox);
     map.bind(logo);
 
+    map.attach(&txtBox);
     map.attach(&btnSettings);
     map.attach(&btnSettings2);
     map.attach(&btnHelp);
