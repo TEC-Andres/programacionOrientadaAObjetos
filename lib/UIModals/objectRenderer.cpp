@@ -103,6 +103,97 @@ std::string ObjectRenderer::stripAnsi(const std::string &line) const
 }
 
 /**
+ * @brief Check whether a line contains only invisible content (spaces).
+ */
+static bool isLineInvisible(const std::string &line)
+{
+    for (size_t i = 0; i < line.size(); ++i) {
+        if (line[i] == '\x1b') {
+            ++i;
+            if (i < line.size() && line[i] == '[') {
+                while (++i < line.size() && !((line[i] >= 'A' && line[i] <= 'Z') || (line[i] >= 'a' && line[i] <= 'z'))) {}
+            }
+        } else if (line[i] != ' ') {
+            return false;
+        }
+    }
+    return true;
+}
+
+void ObjectRenderer::fitToBounds(int availW, int availH)
+{
+    if (!resizable_) return;
+
+    int totalH = (int)lines_.size();
+    if (totalH <= availH) {
+        trimTop_ = 0;
+        trimBottom_ = 0;
+        height_ = totalH;
+        width_ = maxWidth_;
+        return;
+    }
+
+    // Mark invisible rows (all spaces after ANSI strip)
+    std::vector<bool> rowVis(totalH, false);
+    for (int i = 0; i < totalH; ++i) {
+        if (!isLineInvisible(lines_[i])) rowVis[i] = true;
+    }
+
+    int excess = totalH - availH;  // rows to remove
+
+    // Phase 1 – remove invisible rows from the top
+    int t = 0;
+    while (t < totalH && excess > 0 && !rowVis[t]) { ++t; --excess; }
+    // Phase 2 – remove invisible rows from the bottom
+    int b = 0;
+    while (totalH - 1 - b > t && excess > 0 && !rowVis[totalH - 1 - b]) { ++b; --excess; }
+
+    // Phase 3 – remove visible rows respecting alignment
+    int topIdx = t;
+    int botIdx = totalH - 1 - b;
+    switch (align_) {
+        // Top-aligned → bias toward preserving top, trim from bottom
+        case Align::TopLeft: case Align::TopCenter: case Align::TopRight:
+        case Align::Left: case Align::Center: case Align::Right:
+            while (excess > 0 && topIdx <= botIdx) {
+                ++b; --botIdx; --excess;
+            }
+            break;
+        // Bottom-aligned → bias toward preserving bottom, trim from top
+        case Align::BottomLeft: case Align::BottomCenter: case Align::BottomRight:
+            while (excess > 0 && topIdx <= botIdx) {
+                ++t; ++topIdx; --excess;
+            }
+            break;
+        // Middle-aligned → remove equally from both sides
+        default:
+        {
+            bool fromTop = true;
+            while (excess > 0 && topIdx <= botIdx) {
+                if (fromTop) { ++t; ++topIdx; }
+                else         { ++b; --botIdx; }
+                --excess;
+                fromTop = !fromTop;
+            }
+            break;
+        }
+    }
+
+    trimTop_ = t;
+    trimBottom_ = b;
+    height_ = totalH - t - b;
+    if (height_ < 1) height_ = 1;
+
+    // Recompute max visible width among remaining lines
+    int newW = 0;
+    for (int i = t; i < totalH - b; ++i) {
+        int w = visibleWidth(lines_[i]);
+        if (w > newW) newW = w;
+    }
+    width_ = newW;
+}
+
+/**
  * @brief Calculate the visible width of a line, excluding ANSI escape codes.
  * This method counts the number of visible characters in the input string, ignoring any ANSI escape codes that may be present. It correctly handles multi-byte UTF-8 characters by counting only the leading bytes of each character.
  * @param line The input string that may contain ANSI escape codes.
@@ -177,8 +268,10 @@ std::string ObjectRenderer::toString() const
     // When a container (like Partition) handles positioning, output raw lines
     if (externalPos_) {
         std::ostringstream ss;
-        for (const auto &line : lines_) {
-            ss << line << '\n';
+        int n = (int)lines_.size();
+        int end = n - trimBottom_;
+        for (int i = trimTop_; i < end; ++i) {
+            ss << lines_[i] << '\n';
         }
         return ss.str();
     }
