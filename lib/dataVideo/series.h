@@ -13,7 +13,7 @@ private:
     std::string title;
 public:
     Series();
-
+    Series(Video &v, uint32_t season, std::string title);
     Series(uint32_t id, std::string name, uint32_t length, std::string genre, uint8_t rating, uint32_t season, std::string title);
 
     uint32_t getSeason();

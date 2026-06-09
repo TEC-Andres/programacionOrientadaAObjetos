@@ -5,6 +5,11 @@ Series::Series() : Video() {
     title = "";
 }
 
+Series::Series(Video &v, uint32_t season, std::string title) : Video(v.getId(), v.getName(), v.getLength(), v.getGenre(), v.getRating()) {
+    this -> season = season;
+    this -> title = title;
+}
+
 Series::Series(uint32_t id, std::string name, uint32_t length, std::string genre, uint8_t rating, uint32_t season, std::string title) : Video(id, name, length, genre, rating) {
     this -> season = season;
     this -> title = title;

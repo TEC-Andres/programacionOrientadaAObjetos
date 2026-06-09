@@ -11,7 +11,7 @@ private:
     uint32_t episodeNumber;
 public:
     Episodes();
-
+    Episodes(Video &v, std::string director, uint32_t season, std::string title, uint32_t episodeNumber);
     Episodes(uint32_t id, std::string name, uint32_t length, std::string genre, uint8_t rating, uint32_t season, std::string title, uint32_t episodeNumber);
 
     uint32_t getEpisodeNumber();
