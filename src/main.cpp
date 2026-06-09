@@ -1,6 +1,6 @@
 #include "UIControllers/mapComponent.h"
+#include "UIControllers/partition.h"
 #include "UIModals/locationBar.h"
-#include "UIModals/messagebox.h"
 #include "UIModals/button.h"
 #include "UIModals/textbox.h"
 #include "UIModals/objectRenderer.h"
@@ -13,13 +13,18 @@
 
 int main(int argc, char* argv[]) {
     
+    ui::ObjectRenderer loginImage(
+        ui::ascii::loginImage_raw, 
+        ui::ascii::loginImage_lineCount, 
+        ui::component::align=ui::Align::MiddleCenter, 
+        ui::component::resizable=true
+    );
+
     ui::ObjectRenderer logo(
         ui::ascii::logo_raw, 
         ui::ascii::logo_lineCount, 
-        ui::component::align=ui::Align::TopRight, 
-        ui::component::resizable=true, 
-        ui::component::displacementX=10.0f, 
-        ui::component::displacementY=0.0f
+        ui::component::align=ui::Align::TopCenter, 
+        ui::component::resizable=true
     );
     
     ui::LocationBar bar(
@@ -58,14 +63,7 @@ int main(int argc, char* argv[]) {
         ui::component::borderColor = "#fdd663",
         ui::component::align = ui::Align::BottomCenter
     );
-    ui::Button btnSettings2(
-        ui::component::text = " Settings2 ",
-        ui::component::width = 20,
-        ui::component::bgColor = "#fbbc04",
-        ui::component::fgColor = "#000000",
-        ui::component::borderColor = "#fdd663",
-        ui::component::align = ui::Align::BottomCenter
-    );
+
     ui::Button btnHelp(
         ui::component::text = " Help ",
         ui::component::width = 16,
@@ -109,22 +107,23 @@ int main(int argc, char* argv[]) {
         map.stop();
     });
 
-    txtBox.setOnSubmit([&](const std::string &text) {
-        std::ostringstream oss;
-        if (text == "ping") {
-            oss << "\x1b[H\x1b[2K\x1b[32mpong!\x1b[0m";
-        }
-        std::cout << oss.str() << std::flush;
-    });
+    // Create a two-side-H partition with 55/45 ratio
+    ui::Partition area(ui::Partition::TwoSideH, 55.0f);
+
+    area.left().setBackground("#2d5ce6");
+    area.right().setBackground("#333333");
+    // Left region (55%): logo image
+    area.left().attach(&loginImage);
+
+    // Right region (45%): components
+    area.right().attach(&logo);
+    area.right().attach(&btnExit);
+    area.right().attach(&btnSettings);
+    area.right().attach(&btnHelp);
+    area.right().attach(&txtBox);
 
     map.bind(bar);
-    map.bind(logo);
-
-    map.attach(&txtBox);
-    map.attach(&btnSettings);
-    map.attach(&btnSettings2);
-    map.attach(&btnHelp);
-    map.attach(&btnExit);
+    map.setPartition(&area);
 
     map.run();
     return 0;
