@@ -11,7 +11,7 @@ file(GLOB_RECURSE LIB_SOURCES
 
 add_library(SituacionProblemaLib ${LIB_SOURCES})
 
-add_executable(SituacionProblema src/main.cpp)
+add_executable(SituacionProblema src/login.cpp)
 target_link_libraries(SituacionProblema PRIVATE SituacionProblemaLib)
 
 # Place final executable into a top-level __release__ directory inside the source tree
@@ -29,4 +29,9 @@ set_target_properties(SituacionProblema PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE "${RELEASE_OUTPUT_DIR}"
 	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${RELEASE_OUTPUT_DIR}"
 	RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${RELEASE_OUTPUT_DIR}"
+)
+configure_file(
+		${CMAKE_CURRENT_SOURCE_DIR}/.env
+		${RELEASE_OUTPUT_DIR}/.env
+		COPYONLY
 )
