@@ -12,7 +12,64 @@
 |[Eduardo Salazar del Bosque](https://github.com/edusdb4048)  | Documentation |
 
 ## Description
-This project is to fulfill the requirements of the Object Oriented Programming course at ITESM. The main goal is to show data to the user regarding movies, series and episodes of set series. The data is going to be shown in a CLI environment; styled with ANSI escape codes to make it visually appealing. The development of the project was done in C++, although some assets were made with Python and our documentation was made with Markdown. The project is structured in a way that allows for easy maintenance and scalability, following the principles of object oriented programming.
+This project is to fulfill the requirements of the Object Oriented Programming course at ITESM. The main goal is to show data to the user regarding movies, series and episodes of set series. Our preliminary state machine for our backend is as follows:
+
+```mermaid
+classDiagram
+    class Video{
+        -uint32_t id
+        -string name
+        -uint32_t length
+        -string genre
+        -uint8_t rating
+        +Video()
+        +Video(uint32_t id, string name, uint32_t length, string genre, uint8_t rating)
+        +getId() uint32_t
+        +setId(uint32_t id) void
+        +getName() string
+        +setName(string name) void
+        +getLength() uint32_t
+        +setLength(uint32_t length) void
+        +getGenre() string
+        +setGenre(string genre) void
+        +getRating() uint8_t
+        +setRating(uint8_t rating) void
+    }
+
+    class Movie{
+        -string director
+        +Movie()
+        +Movie(uint32_t id, string name, uint32_t length, string genre, uint8_t rating, string director)
+        +getDirector() string
+        +setDirector(string director) void
+    }
+
+    class Series{
+        -string title
+        +Series()
+        +Series(uint32_t id, string name, uint32_t length, string genre, uint8_t rating, string title)
+        +getTitle() string
+        +setTitle(string title) void
+    }
+
+    class Episode{
+        -uint32_t season
+        -uint32_t episodeNumber
+        +Episode()
+        +Episode(uint32_t season, uint32_t episodeNumber)
+        +getSeason() uint32_t
+        +setSeason(uint32_t season) void
+        +getEpisodeNumber() uint32_t
+        +setEpisodeNumber(uint32_t episodeNumber) void
+    }
+
+    Video <|-- Movie : Inherits
+    Video <|-- Series : Inherits
+    Series <|-- Episode : Inherits
+```
+
+
+The data is going to be shown in a CLI environment; styled with ANSI escape codes to make it visually appealing. The development of the project was done in C++, although some assets were made with Python and our documentation was made with Markdown. The project is structured in a way that allows for easy maintenance and scalability, following the principles of object oriented programming.
 
 
 ## Requirements 
