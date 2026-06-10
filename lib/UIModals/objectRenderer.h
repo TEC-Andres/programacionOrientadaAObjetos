@@ -60,6 +60,14 @@ public:
     int anchorX() const;
     int anchorY() const;
 
+    bool usesExternalPositioning() const override { return externalPos_; }
+    void setUsesExternalPositioning(bool e) override { externalPos_ = e; }
+
+    /// Adjust rendered content to fit within @p availW x @p availH.
+    /// Invisible (all-space) rows/columns are removed first; visible
+    /// content is cropped from the edges only when necessary.
+    void fitToBounds(int availW, int availH);
+
     void setOnActivate(std::function<void()> cb) override { onActivate_ = cb; }
     void onActivate() override { if (onActivate_) onActivate_(); }
 
@@ -71,6 +79,9 @@ private:
     std::vector<std::string> lines_;
     int maxWidth_;
     bool resizable_ = false;
+    bool externalPos_ = false;
+    int trimTop_ = 0;
+    int trimBottom_ = 0;
     std::function<void()> onActivate_;
 
     std::string stripAnsi(const std::string &line) const;

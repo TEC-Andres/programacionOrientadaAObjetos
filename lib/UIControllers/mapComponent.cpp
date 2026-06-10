@@ -1,4 +1,5 @@
 #include "mapComponent.h"
+#include "partition.h"
 #include <iostream>
 #include <sstream>
 #include <algorithm>
@@ -24,6 +25,19 @@
 #endif
 
 namespace ui {
+
+static int alignmentBand(Align a) {
+    switch (a) {
+        case Align::Left: case Align::Center: case Align::Right:
+        case Align::TopLeft: case Align::TopCenter: case Align::TopRight:
+            return 0;
+        case Align::MiddleLeft: case Align::MiddleCenter: case Align::MiddleRight:
+            return 1;
+        case Align::BottomLeft: case Align::BottomCenter: case Align::BottomRight:
+            return 2;
+    }
+    return 0;
+}
 
 /**
  * @brief Get the console width in columns.
@@ -81,7 +95,8 @@ MapComponent::MapComponent(int framesPerSecond, int gridColumns)
       lastConsoleWidth_(0),
       lastConsoleHeight_(0),
       gridColumns_(gridColumns > 0 ? gridColumns : 3),
-      attachedCount_(0)
+      attachedCount_(0),
+      partition_(nullptr)
 {
 }
 
@@ -277,26 +292,54 @@ bool MapComponent::moveDown()
 bool MapComponent::moveLeft()
 {
     if (!hasFocus_) return false;
-    int n = (int)cells_.size();
-    int idx = -1;
-    for (int i = 0; i < n; ++i) {
-        if (cells_[i].row == focusRow_ && cells_[i].col == focusCol_) {
-            idx = i;
+
+    // Determine the alignment band of the currently focused component
+    int band = -1;
+    int curIdx = -1;
+    for (int i = 0; i < (int)cells_.size(); ++i) {
+        auto &cell = cells_[i];
+        if (cell.component && cell.row == focusRow_ && cell.col == focusCol_) {
+            band = alignmentBand(cell.component->alignment());
+            curIdx = i;
             break;
         }
     }
-    if (idx < 0) return false;
-    for (int i = 1; i <= n; ++i) {
-        int prev = (idx - i + n) % n;
-        if (cells_[prev].component && cells_[prev].component->isFocusable()) {
-            for (auto &cell : cells_) cell.component->setSelected(false);
-            focusRow_ = cells_[prev].row;
-            focusCol_ = cells_[prev].col;
-            cells_[prev].component->setSelected(true);
-            return true;
+    if (band < 0 || curIdx < 0) return false;
+
+    // Collect indices of all focusable cells in the same band (insertion order)
+    std::vector<int> sameBand;
+    for (int i = 0; i < (int)cells_.size(); ++i) {
+        if (cells_[i].component && cells_[i].component->isFocusable() &&
+            alignmentBand(cells_[i].component->alignment()) == band) {
+            sameBand.push_back(i);
         }
     }
-    return false;
+    if (sameBand.size() < 2) {
+        GridCell *next = findFocusable(focusRow_, focusCol_, 0, -1);
+        if (next) {
+            for (auto &c : cells_) if (c.component) c.component->setSelected(false);
+            focusRow_ = next->row;
+            focusCol_ = next->col;
+            next->component->setSelected(true);
+            return true;
+        }
+        return false;
+    }
+
+    // Find current position in the band list, then move to previous (left)
+    int pos = -1;
+    for (int i = 0; i < (int)sameBand.size(); ++i) {
+        if (sameBand[i] == curIdx) { pos = i; break; }
+    }
+    if (pos < 0) return false;
+    int prev = (pos - 1 + (int)sameBand.size()) % (int)sameBand.size();
+    int idx = sameBand[prev];
+
+    for (auto &c : cells_) if (c.component) c.component->setSelected(false);
+    focusRow_ = cells_[idx].row;
+    focusCol_ = cells_[idx].col;
+    cells_[idx].component->setSelected(true);
+    return true;
 }
 
 /**
@@ -307,26 +350,54 @@ bool MapComponent::moveLeft()
 bool MapComponent::moveRight()
 {
     if (!hasFocus_) return false;
-    int n = (int)cells_.size();
-    int idx = -1;
-    for (int i = 0; i < n; ++i) {
-        if (cells_[i].row == focusRow_ && cells_[i].col == focusCol_) {
-            idx = i;
+
+    // Determine the alignment band of the currently focused component
+    int band = -1;
+    int curIdx = -1;
+    for (int i = 0; i < (int)cells_.size(); ++i) {
+        auto &cell = cells_[i];
+        if (cell.component && cell.row == focusRow_ && cell.col == focusCol_) {
+            band = alignmentBand(cell.component->alignment());
+            curIdx = i;
             break;
         }
     }
-    if (idx < 0) return false;
-    for (int i = 1; i <= n; ++i) {
-        int next = (idx + i) % n;
-        if (cells_[next].component && cells_[next].component->isFocusable()) {
-            for (auto &cell : cells_) cell.component->setSelected(false);
-            focusRow_ = cells_[next].row;
-            focusCol_ = cells_[next].col;
-            cells_[next].component->setSelected(true);
-            return true;
+    if (band < 0 || curIdx < 0) return false;
+
+    // Collect indices of all focusable cells in the same band (insertion order)
+    std::vector<int> sameBand;
+    for (int i = 0; i < (int)cells_.size(); ++i) {
+        if (cells_[i].component && cells_[i].component->isFocusable() &&
+            alignmentBand(cells_[i].component->alignment()) == band) {
+            sameBand.push_back(i);
         }
     }
-    return false;
+    if (sameBand.size() < 2) {
+        GridCell *next = findFocusable(focusRow_, focusCol_, 0, 1);
+        if (next) {
+            for (auto &c : cells_) if (c.component) c.component->setSelected(false);
+            focusRow_ = next->row;
+            focusCol_ = next->col;
+            next->component->setSelected(true);
+            return true;
+        }
+        return false;
+    }
+
+    // Find current position in the band list, then move to next (right)
+    int pos = -1;
+    for (int i = 0; i < (int)sameBand.size(); ++i) {
+        if (sameBand[i] == curIdx) { pos = i; break; }
+    }
+    if (pos < 0) return false;
+    int next = (pos + 1) % (int)sameBand.size();
+    int idx = sameBand[next];
+
+    for (auto &c : cells_) if (c.component) c.component->setSelected(false);
+    focusRow_ = cells_[idx].row;
+    focusCol_ = cells_[idx].col;
+    cells_[idx].component->setSelected(true);
+    return true;
 }
 
 /**
@@ -388,6 +459,13 @@ void MapComponent::render(std::ostream &out)
         if (c == '\n') ++cbRows;
     }
     out << cbStr;
+
+    // If a partition is set, update boundaries and use it instead of the grid
+    if (partition_) {
+        partition_->update(cbRows);
+        partition_->render(out);
+        return;
+    }
 
     // --- Render cells with overlap avoidance ---
     for (auto &cell : cells_) {
@@ -531,6 +609,9 @@ bool MapComponent::handleInput()
     int ch = _getch();
     if (ch == 0xE0 || ch == 0x00) {
         ch = _getch();
+        if (partition_) {
+            if (partition_->handleKey(ch)) return true;
+        }
         switch (ch) {
             case UP_ARROW: moveUp(); return true;
             case DOWN_ARROW: moveDown(); return true;
@@ -538,6 +619,19 @@ bool MapComponent::handleInput()
             case RIGHT_ARROW: moveRight(); return true;
         }
     } else {
+        // Delegate to partition first
+        if (partition_) {
+            if (partition_->handleKey(ch)) return true;
+        }
+        // Delegate to the focused component in grid
+        if (hasFocus_) {
+            for (auto &cell : cells_) {
+                if (cell.component && cell.row == focusRow_ && cell.col == focusCol_) {
+                    if (cell.component->handleKey(ch)) return true;
+                    break;
+                }
+            }
+        }
         switch (ch) {
             case 13: activate(); return true;
             case 27: running_ = false; return true;
@@ -567,22 +661,54 @@ bool MapComponent::handleInput()
                 char seq[2];
                 if (read(STDIN_FILENO, &seq[0], 1) > 0 && seq[0] == '[') {
                     if (read(STDIN_FILENO, &seq[1], 1) > 0) {
-                        switch (seq[1]) {
-                            case 'A': moveUp(); handled = true; break;
-                            case 'B': moveDown(); handled = true; break;
-                            case 'D': moveLeft(); handled = true; break;
-                            case 'C': moveRight(); handled = true; break;
+                        if (partition_) {
+                            int ak = 0;
+                            switch (seq[1]) {
+                                case 'A': ak = 72; break;
+                                case 'B': ak = 80; break;
+                                case 'D': ak = 75; break;
+                                case 'C': ak = 77; break;
+                            }
+                            if (ak && partition_->handleKey(ak)) {
+                                handled = true;
+                            }
+                        }
+                        if (!handled) {
+                            switch (seq[1]) {
+                                case 'A': moveUp(); handled = true; break;
+                                case 'B': moveDown(); handled = true; break;
+                                case 'D': moveLeft(); handled = true; break;
+                                case 'C': moveRight(); handled = true; break;
+                            }
                         }
                     }
                 }
             } else {
-                switch (ch) {
-                    case '\n': case '\r': activate(); handled = true; break;
-                    case 27: running_ = false; handled = true; break;
-                    case '\t':
-                        if (!moveDown()) focusFirstFocusable();
-                        handled = true;
-                        break;
+                // Delegate to partition first
+                if (partition_ && partition_->handleKey((unsigned char)ch)) {
+                    handled = true;
+                }
+                if (!handled) {
+                    for (auto &cell : cells_) {
+                        if (cell.component && cell.row == focusRow_ && cell.col == focusCol_) {
+                            if (cell.component->handleKey((unsigned char)ch)) {
+                                handled = true;
+                                break;
+                            }
+                            break;
+                        }
+                    }
+                    if (handled) { /* skip default processing */ }
+                }
+                if (!handled) {
+                    switch (ch) {
+                        case '\n': case '\r': activate(); handled = true; break;
+                        case 27: running_ = false; handled = true; break;
+                        case '\t':
+                            if (!moveDown()) focusFirstFocusable();
+                            handled = true;
+                            break;
+                    }
                 }
             }
         }
@@ -617,6 +743,9 @@ void MapComponent::run()
 #endif
 
     focusFirstFocusable();
+    if (partition_) {
+        partition_->setFocus(true);
+    }
     running_ = true;
 
     if (!background_.empty()) {

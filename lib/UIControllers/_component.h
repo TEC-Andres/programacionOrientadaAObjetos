@@ -74,6 +74,9 @@ public:
     virtual bool selected() const { return false; }
     virtual void onActivate() {}
     virtual void setOnActivate(std::function<void()>) {}
+    virtual bool handleKey(int /*key*/) { return false; }
+    virtual bool usesExternalPositioning() const { return false; }
+    virtual void setUsesExternalPositioning(bool) {}
     Align alignment() const { return align_; }
     void setAlignment(Align a) { align_ = a; }
     float displacementX() const { return displacementX_; }
