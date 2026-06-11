@@ -1,12 +1,12 @@
 #include <iostream>
 #include <string>
 #include <limits>
-#include "../lib/SHA256/SHA256.h"
-
+#include "../lib/loginManager/loginManager.h"
 
 int main() {
-    // 1. Load existing database parameters immediately upon opening execution
-    load_users_from_env();
+    // Instantiate our login manager.
+    // This automatically triggers the .env search and loads the database.
+    LoginManager auth;
 
     int choice = 0;
     std::string username, password;
@@ -29,7 +29,7 @@ int main() {
 
         if (choice == 3) {
             std::cout << "Exiting system. Goodbye!\n";
-            return 0; // Terminate app safely
+            return 0;
         }
 
         switch (choice) {
@@ -38,24 +38,31 @@ int main() {
                 std::getline(std::cin, username);
                 std::cout << "Enter Password: ";
                 std::getline(std::cin, password);
+
                 if (!username.empty() && !password.empty()) {
-                    register_user(username, password);
+                    if (auth.register_user(username, password)) {
+                        std::cout << "\n Registration successful for '" << username << "'!\n";
+                    } else {
+                        std::cout << " Internal database error during registration.\n";
+                    }
                 } else {
                     std::cout << " Fields cannot be blank.\n";
                 }
                 break;
+
             case 2:
                 std::cout << "\n--- [USER LOGIN] ---\n" << "Enter Username: ";
                 std::getline(std::cin, username);
                 std::cout << "Enter Password: ";
                 std::getline(std::cin, password);
 
-                if (login_user(username, password)) {
-                    std::cout << "\n Access Granted! Put any code you want to run after login here.\n";
-                    // If you have any other functions or menus from your project to run after a successful login,
-                    // you can just call them right here!
+                if (auth.login_user(username, password)) {
+                    std::cout << "\n Session Owner: " << auth.get_current_user() << " has connected.\n";
+
+                    // --- Start your main application logic here! ---
                 }
                 break;
+
             default:
                 std::cout << " Invalid selection.\n";
                 break;
