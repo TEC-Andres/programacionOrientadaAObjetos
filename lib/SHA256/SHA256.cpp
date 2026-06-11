@@ -1,4 +1,4 @@
-#include "auth.h"
+#include "SHA256.h"
 #include <fstream>
 #include <sstream>
 #include <random>
@@ -6,13 +6,10 @@
 #include <cstring>
 #include <iostream>
 
-// File constants
-const std::string ENV_FILE_NAME = ".env";
+const std::string ENV_FILE_NAME = "../.env";
 
-// In-memory runtime database hidden inside auth.cpp
 static std::unordered_map<std::string, UserRecord> user_database;
 
-// SHA-256 Initialization Constants
 SHA256::SHA256() : k{
     0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
     0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
@@ -28,7 +25,6 @@ SHA256::SHA256() : k{
     bitlen = 0; datalen = 0;
 }
 
-// Bitwise helper macros translated to inline methods
 inline uint32_t SHA256::rotr(uint32_t x, uint32_t n) { return (x >> n) | (x << (32 - n)); }
 inline uint32_t SHA256::ch(uint32_t x, uint32_t y, uint32_t z) { return (x & y) ^ (~x & z); }
 inline uint32_t SHA256::maj(uint32_t x, uint32_t y, uint32_t z) { return (x & y) ^ (x & z) ^ (y & z); }
@@ -37,7 +33,7 @@ inline uint32_t SHA256::ep1(uint32_t x) { return rotr(x, 6) ^ rotr(x, 11) ^ rotr
 inline uint32_t SHA256::sig0(uint32_t x) { return rotr(x, 7) ^ rotr(x, 18) ^ (x >> 3); }
 inline uint32_t SHA256::sig1(uint32_t x) { return rotr(x, 17) ^ rotr(x, 19) ^ (x >> 10); }
 
-void SHA256::transform() {
+void SHA256::process_64byte_block() {
     uint32_t m[64];
     for (int i = 0; i < 16; ++i) {
         m[i] = (data[i * 4] << 24) | (data[i * 4 + 1] << 16) | (data[i * 4 + 2] << 8) | (data[i * 4 + 3]);
@@ -58,19 +54,19 @@ void SHA256::transform() {
     state[4] += e; state[5] += f; state[6] += g; state[7] += h;
 }
 
-void SHA256::update(const uint8_t* buf, size_t len) {
+void SHA256::add_data(const uint8_t* buf, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         data[datalen] = buf[i];
         datalen++;
         if (datalen == 64) {
-            transform();
+            process_64byte_block();
             bitlen += 512;
             datalen = 0;
         }
     }
 }
 
-std::string SHA256::final() {
+std::string SHA256::emit_hash_string() {
     uint32_t i = datalen;
     if (datalen < 56) {
         data[i++] = 0x80;
@@ -78,13 +74,13 @@ std::string SHA256::final() {
     } else {
         data[i++] = 0x80;
         while (i < 64) data[i++] = 0x00;
-        transform();
+        process_64byte_block();
         memset(data, 0, 56);
     }
     bitlen += datalen * 8;
     data[63] = bitlen; data[62] = bitlen >> 8; data[61] = bitlen >> 16; data[60] = bitlen >> 24;
     data[59] = bitlen >> 32; data[58] = bitlen >> 40; data[57] = bitlen >> 48; data[56] = bitlen >> 56;
-    transform();
+    process_64byte_block();
 
     std::stringstream ss;
     for (int j = 0; j < 8; ++j) {
@@ -92,14 +88,25 @@ std::string SHA256::final() {
     }
     return ss.str();
 }
-
-std::string SHA256::hash_string(const std::string& input) {
+/**
+ * =========================================================================
+ * SHA256::hash
+ * =========================================================================
+ * Public static helper method that manages the hashing life cycle.
+ * Converts a regular string into an un-reversible 64-character hex string.
+ */
+std::string SHA256::hash(const std::string& input) {
     SHA256 ctx;
-    ctx.update(reinterpret_cast<const uint8_t*>(input.c_str()), input.length());
-    return ctx.final();
+    ctx.add_data(reinterpret_cast<const uint8_t*>(input.c_str()), input.length());
+    return ctx.emit_hash_string();
 }
-
-// Salt Generation Engine
+/**
+ * =========================================================================
+ * generate_salt
+ * =========================================================================
+ * Generates an unpredictable string of characters. This gets mixed into the
+ * password before hashing.
+ */
 std::string generate_salt(size_t length) {
     const char charset[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     std::random_device rd;
@@ -113,19 +120,22 @@ std::string generate_salt(size_t length) {
     }
     return salt;
 }
-
-// Loads credentials from .env using format: USERNAME=HASH:SALT
+/**
+ * =========================================================================
+ * load_users_from_env
+ * =========================================================================
+ * Reads the configurations from the `.env` file on disk line by line,
+ * parses out credentials structured as: USERNAME=HASH:SALT
+ * and stores them in our fast in-memory runtime `user_database` map.
+ */
 bool load_users_from_env() {
     std::ifstream file(ENV_FILE_NAME);
-    if (!file.is_open()) {
-        return false; // File doesn't exist yet (normal on first run)
-    }
+    if (!file.is_open()) return false;
 
     user_database.clear();
     std::string line;
     while (std::getline(file, line)) {
-        if (line.empty() || line[0] == '#') continue; // Skip comments/blanks
-
+        if (line.empty() || line[0] == '#') continue;
         size_t delim = line.find('=');
         if (delim == std::string::npos) continue;
 
@@ -135,22 +145,24 @@ bool load_users_from_env() {
         size_t colon = payload.find(':');
         if (colon == std::string::npos) continue;
 
-        std::string hash = payload.substr(0, colon);
-        std::string salt = payload.substr(colon + 1);
+        std::string hash_val = payload.substr(0, colon);
+        std::string salt_val = payload.substr(colon + 1);
 
-        user_database[username] = { hash, salt };
+        user_database[username] = { hash_val, salt_val };
     }
     file.close();
     return true;
 }
-
-// Writes database out to the .env file
+/**
+ * =========================================================================
+ * save_users_to_env
+ * =========================================================================
+ * Synchronizes the runtime RAM database out to the permanent `.env` file.
+ * Loops through all users, writing them to disk using the standard format.
+ */
 bool save_users_to_env() {
     std::ofstream file(ENV_FILE_NAME);
-    if (!file.is_open()) {
-        std::cerr << "Fatal Error: Could not save credentials to file!\n";
-        return false;
-    }
+    if (!file.is_open()) return false;
 
     for (const auto& pair : user_database) {
         file << pair.first << "=" << pair.second.password_hash << ":" << pair.second.salt << "\n";
@@ -158,7 +170,13 @@ bool save_users_to_env() {
     file.close();
     return true;
 }
-
+/**
+ * =========================================================================
+ * register_user
+ * =========================================================================
+ * Validates availability, creates a unique crypto-salt, combines it with the
+ * password, computes the SHA-256 result, adds it to RAM, and backs it up to disk.
+ */
 bool register_user(const std::string& username, const std::string& password) {
     if (user_database.find(username) != user_database.end()) {
         std::cout << "\n Registration Error: Username already exists.\n";
@@ -166,17 +184,23 @@ bool register_user(const std::string& username, const std::string& password) {
     }
 
     std::string salt = generate_salt();
-    std::string hash = SHA256::hash_string(salt + password);
+    std::string password_hash = SHA256::hash(salt + password); // Utilizing new method name
 
-    user_database[username] = { hash, salt };
+    user_database[username] = { password_hash, salt };
 
     if (save_users_to_env()) {
-        std::cout << "\n Registration successful for '" << username << "'!\n";
+        std::cout << "\nRegistration successful for '" << username << "'!\n";
         return true;
     }
     return false;
 }
-
+/**
+ * =========================================================================
+ * login_user
+ * =========================================================================
+ * Verifies username existence, grabs their unique salt, re-hashes the input password
+ * attempt, and checks if it matches the stored hash exactly.
+ */
 bool login_user(const std::string& username, const std::string& password) {
     auto it = user_database.find(username);
     if (it == user_database.end()) {
@@ -185,7 +209,7 @@ bool login_user(const std::string& username, const std::string& password) {
     }
 
     const UserRecord& record = it->second;
-    std::string attempt_hash = SHA256::hash_string(record.salt + password);
+    std::string attempt_hash = SHA256::hash(record.salt + password); // Utilizing new method name
 
     if (attempt_hash == record.password_hash) {
         std::cout << "\n Login Success! Welcome back, " << username << ".\n";
