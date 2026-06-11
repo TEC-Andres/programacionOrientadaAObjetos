@@ -1,12 +1,14 @@
+#include "ascii/__mapping.h"
 #include "UIControllers/mapComponent.h"
 #include "UIControllers/partition.h"
 #include "UIModals/locationBar.h"
 #include "UIModals/button.h"
 #include "UIModals/textbox.h"
 #include "UIModals/objectRenderer.h"
-#include "ascii/__mapping.h"
+#include "loginManager/loginManager.h"
 #include <iostream>
 #include <sstream>
+
 #if defined(_WIN32) || defined(_WIN64)
     #include <conio.h>
 #endif
@@ -81,17 +83,22 @@ int main(int argc, char* argv[]) {
         ui::component::align = ui::Align::BottomCenter
     );
 
-    // Login validation callback
+    // Instantiate login manager — automatically loads .env credentials
+    LoginManager auth;
+
+    // Login validation callback — checks credentials against .env
     btnLogin.setOnActivate([&]() {
         std::string user = txtUsername.text();
         std::string pass = txtPassword.text();
         std::cout << "\x1b[2J\x1b[H";
         if (!user.empty() && !pass.empty()) {
-            std::cout << "\x1b[32mLogin successful! Welcome, " << user << "!\x1b[0m\n";
+            if (auth.login_user(user, pass)) {
+                std::cout << " Session Owner: " << auth.get_current_user() << " has connected.\n";
+            }
         } else {
             std::cout << "\x1b[31mPlease enter both username and password.\x1b[0m\n";
         }
-        std::cout << "Press any key to return...\n";
+        std::cout << "\nPress any key to continue...\n";
         #if defined(_WIN32) || defined(_WIN64)
             _getch();
         #elif defined(__APPLE__) || defined(__MACH__)
@@ -108,7 +115,7 @@ int main(int argc, char* argv[]) {
     // Create a two-side-H partition with 55/45 ratio
     ui::Partition area(ui::Partition::TwoSideH, 55.0f);
 
-    area.left().setBackground("#2d5ce6");
+    area.left().setBackground("#ee3245");
     area.right().setBackground("#333333");
     // Left region (55%): login image
     area.left().attach(&loginImage);
