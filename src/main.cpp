@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
         ui::ascii::logo_raw,
         ui::ascii::logo_lineCount,
         ui::component::align = ui::Align::TopCenter,
+        ui::component::displacementY = 100,
         ui::component::resizable = true
     );
 
@@ -37,7 +38,7 @@ int main(int argc, char* argv[]) {
         0
     );
 
-    ui::MapComponent map(30, 3);
+    ui::MapComponent map(30, 5);
     map.setBackground("#111111");
 
     // Username textbox with ghost message
