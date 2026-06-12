@@ -471,6 +471,9 @@ void MapComponent::render(std::ostream &out)
     for (auto &cell : cells_) {
         if (!cell.component) continue;
 
+        // Let the container control positioning (prevents double displacement)
+        cell.component->setUsesExternalPositioning(true);
+
         int compWidth = cell.component->width();
         int compHeight = cell.component->height();
         Align align = cell.component->alignment();
