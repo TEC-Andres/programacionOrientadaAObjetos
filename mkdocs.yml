@@ -2,7 +2,7 @@ site_name: Problem situation | TC1030.307
 theme:
   name: material
   highlightjs: true
-  logo: "assets/logo.png"
+  logo: "assets/favicon.png"
   favicon: "assets/favicon.png"
   features:
     - content.code.annotate
