@@ -213,15 +213,33 @@ void Partition::render(std::ostream &out)
                    + std::to_string(bgG) + ';' + std::to_string(bgB) + 'm';
         }
 
-        // Fill region background if set
+        // Fill region background if set (cached to avoid regenerating every frame)
         if (hasBg) {
-            for (int row = 0; row < reg.h_; ++row) {
-                out << "\x1b[" << (reg.y_ + row + 1) << ";" << (reg.x_ + 1) << "H";
-                out << bgAnsi;
-                for (int c = 0; c < reg.w_; ++c) out << ' ';
-                out << "\x1b[0m";
+            if (reg.w_ != reg.cachedW_ || reg.h_ != reg.cachedH_) {
+                std::ostringstream bgBuf;
+                for (int row = 0; row < reg.h_; ++row) {
+                    bgBuf << "\x1b[" << (reg.y_ + row + 1) << ";" << (reg.x_ + 1) << "H";
+                    bgBuf << bgAnsi;
+                    for (int c = 0; c < reg.w_; ++c) bgBuf << ' ';
+                    bgBuf << "\x1b[0m";
+                }
+                reg.bgCache_ = bgBuf.str();
+                reg.cachedW_ = reg.w_;
+                reg.cachedH_ = reg.h_;
             }
+            out << reg.bgCache_;
         }
+
+        // --- Group components by alignment band for vertical stacking ---
+        struct LayoutItem {
+            IComponent* comp;
+            ObjectRenderer* objRend;
+            int compW;
+            int compH;
+            int cx;
+            int cy;
+        };
+        std::vector<LayoutItem> bands[3];
 
         for (auto comp : reg.comps_) {
             if (!comp) continue;
@@ -230,7 +248,6 @@ void Partition::render(std::ostream &out)
             int compH = comp->height();
             if (compW < 6) compW = 6;
 
-            // Fit resizable components within the region
             ObjectRenderer *objRend = dynamic_cast<ObjectRenderer*>(comp);
             if ((compW > reg.w_ || compH > reg.h_) && objRend && objRend->resizable()) {
                 objRend->fitToBounds(reg.w_, reg.h_);
@@ -240,67 +257,105 @@ void Partition::render(std::ostream &out)
                 if (compH < 1) compH = 1;
             }
 
-            int cx, cy;
+            int band = alignmentBand(comp->alignment());
+            if (band < 0 || band > 2) band = 0;
+
+            int cx, _cy;
             calcRegionPos(comp->alignment(), compW, compH,
-                          reg.w_, reg.h_, cx, cy);
+                          reg.w_, reg.h_, cx, _cy);
 
-            // Apply displacement
-            float dx = comp->displacementX();
-            float dy = comp->displacementY();
-            int dirX = 1;
-            switch (comp->alignment()) {
-                case Align::Right: case Align::TopRight:
-                case Align::MiddleRight: case Align::BottomRight:
-                    dirX = -1; break;
-                default: break;
-            }
-            int dirY = 1;
-            switch (comp->alignment()) {
-                case Align::BottomLeft: case Align::BottomCenter:
-                case Align::BottomRight:
-                    dirY = -1; break;
-                default: break;
-            }
-            cx += (int)(dx * compW * dirX / 100.0f);
-            cy += (int)(dy * compH * dirY / 100.0f);
+            bands[band].push_back({comp, objRend, compW, compH, cx, 0});
+        }
 
-            // Offset by region position on screen
-            cx += reg.x_;
-            cy += reg.y_;
-
-            if (cx < 0) cx = 0;
-            if (cy < 0) cy = 0;
-
-            // Render line by line
-            std::string content = comp->toString();
-            size_t pos = 0;
-            int lineNum = 0;
-            while (pos < content.size()) {
-                size_t next = content.find('\n', pos);
-                std::string line = (next == std::string::npos)
-                    ? content.substr(pos)
-                    : content.substr(pos, next - pos);
-
-                out << "\x1b[" << (cy + lineNum + 1) << ";" << (cx + 1) << "H";
-
-                // Only re-establish the region background inside ANSI art
-                // (ObjectRenderer). Regular components (Button, TextBox, …)
-                // have their own backgrounds and must not be overridden.
-                if (hasBg && objRend) {
-                    out << bgAnsi;
-                    std::string resetStr = "\x1b[0m";
-                    std::string replacement = resetStr + bgAnsi;
-                    size_t p = 0;
-                    while ((p = line.find(resetStr, p)) != std::string::npos) {
-                        line.replace(p, resetStr.length(), replacement);
-                        p += replacement.length();
-                    }
+        // Calculate Y positions with stacking within each band
+        const int GAP = 1;
+        for (int bi = 0; bi < 3; ++bi) {
+            if (bands[bi].empty()) continue;
+            if (bi == 0) {
+                int y = 0;
+                for (auto &item : bands[bi]) {
+                    item.cy = y;
+                    y += item.compH + GAP;
                 }
-                out << line;
+            } else if (bi == 1) {
+                int totalH = 0;
+                for (auto &item : bands[bi]) totalH += item.compH + GAP;
+                if (!bands[bi].empty()) totalH -= GAP;
+                int y = totalH > reg.h_ ? 0 : (reg.h_ - totalH) / 2;
+                for (auto &item : bands[bi]) {
+                    item.cy = y;
+                    y += item.compH + GAP;
+                }
+            } else {
+                int y = reg.h_;
+                for (auto it = bands[bi].rbegin(); it != bands[bi].rend(); ++it) {
+                    y -= it->compH;
+                    it->cy = y;
+                    y -= GAP;
+                }
+            }
+        }
 
-                ++lineNum;
-                if (next == std::string::npos) break;
-                pos = next + 1;
+        // Render all components using calculated layout positions
+        for (int bi = 0; bi < 3; ++bi) {
+            for (auto &item : bands[bi]) {
+                int cx = item.cx;
+                int cy = item.cy;
+
+                // Apply displacement
+                float dx = item.comp->displacementX();
+                float dy = item.comp->displacementY();
+                int dirX = 1;
+                switch (item.comp->alignment()) {
+                    case Align::Right: case Align::TopRight:
+                    case Align::MiddleRight: case Align::BottomRight:
+                        dirX = -1; break;
+                    default: break;
+                }
+                int dirY = 1;
+                switch (item.comp->alignment()) {
+                    case Align::BottomLeft: case Align::BottomCenter:
+                    case Align::BottomRight:
+                        dirY = -1; break;
+                    default: break;
+                }
+                cx += (int)(dx * item.compW * dirX / 100.0f);
+                cy += (int)(dy * item.compH * dirY / 100.0f);
+
+                cx += reg.x_;
+                cy += reg.y_;
+
+                if (cx < 0) cx = 0;
+                if (cy < 0) cy = 0;
+
+                // Render line by line
+                std::string content = item.comp->toString();
+                size_t pos = 0;
+                int lineNum = 0;
+                while (pos < content.size()) {
+                    size_t next = content.find('\n', pos);
+                    std::string line = (next == std::string::npos)
+                        ? content.substr(pos)
+                        : content.substr(pos, next - pos);
+
+                    out << "\x1b[" << (cy + lineNum + 1) << ";" << (cx + 1) << "H";
+
+                    if (hasBg) {
+                        out << bgAnsi;
+                        std::string resetStr = "\x1b[0m";
+                        std::string replacement = resetStr + bgAnsi;
+                        size_t p = 0;
+                        while ((p = line.find(resetStr, p)) != std::string::npos) {
+                            line.replace(p, resetStr.length(), replacement);
+                            p += replacement.length();
+                        }
+                    }
+                    out << line;
+
+                    ++lineNum;
+                    if (next == std::string::npos) break;
+                    pos = next + 1;
+                }
             }
         }
     }
@@ -386,20 +441,52 @@ void Partition::moveFocus(int dx, int dy)
         // No adjacent region with focusable → fall through to within-region horizontal
     }
 
-    // Build list of focusable components in current region with their visual centers
+    // Build list of focusable components with stacking-aware Y positions
     struct Item { int idx, cx, cy; };
     std::vector<Item> items;
     {
         auto &comps = regions_[focusRegion_].comps_;
+        struct BandItem { int idx; int cw; int ch; int cx; int band; };
+        std::vector<BandItem> bandItems;
+
         for (int i = 0; i < (int)comps.size(); ++i) {
             if (!comps[i] || !comps[i]->isFocusable()) continue;
             int cw = comps[i]->width();
             int ch = comps[i]->height();
             if (cw < 6) cw = 6;
-            int cx, cy;
+            int cx, cy_unused;
             calcRegionPos(comps[i]->alignment(), cw, ch,
-                          regions_[focusRegion_].w_, regions_[focusRegion_].h_, cx, cy);
-            items.push_back({i, cx + cw / 2, cy + ch / 2});
+                          regions_[focusRegion_].w_, regions_[focusRegion_].h_, cx, cy_unused);
+            int band = alignmentBand(comps[i]->alignment());
+            bandItems.push_back({i, cw, ch, cx, band});
+        }
+
+        // Calculate stacked Y positions per band
+        const int GAP = 1;
+        int bandY[3] = {0, 0, 0};
+        int bandTotalH[3] = {0, 0, 0};
+        for (auto &bi : bandItems) {
+            if (bi.band == 0) {
+                bandTotalH[0] += bi.ch + GAP;
+            } else if (bi.band == 1) {
+                bandTotalH[1] += bi.ch + GAP;
+            } else {
+                bandTotalH[2] += bi.ch + GAP;
+            }
+        }
+        for (int b = 0; b < 3; ++b) {
+            if (bandTotalH[b] > 0) bandTotalH[b] -= GAP;
+        }
+        if (!bandItems.empty()) {
+            bandY[1] = bandTotalH[1] > regions_[focusRegion_].h_
+                ? 0 : (regions_[focusRegion_].h_ - bandTotalH[1]) / 2;
+            bandY[2] = regions_[focusRegion_].h_ - bandTotalH[2];
+        }
+        int nextY[3] = {0, bandY[1], bandY[2]};
+        for (auto &bi : bandItems) {
+            int cy = nextY[bi.band];
+            nextY[bi.band] += bi.ch + GAP;
+            items.push_back({bi.idx, bi.cx + bi.cw / 2, cy + bi.ch / 2});
         }
     }
 
@@ -479,19 +566,19 @@ bool Partition::handleKey(int key)
     //   Up / Down      → move vertically  within region
     //   Left / Right   → try adjacent region first,
     //                    fall back to horizontal within-region
-    if (key == 72 || key == 'A') { // Up
+    if (key == UI_KEY_UP) { // Up
         moveFocus(0, -1);
         return true;
     }
-    if (key == 80 || key == 'B') { // Down
+    if (key == UI_KEY_DOWN) { // Down
         moveFocus(0, 1);
         return true;
     }
-    if (key == 75 || key == 'D') { // Left
+    if (key == UI_KEY_LEFT) { // Left
         moveFocus(-1, 0);
         return true;
     }
-    if (key == 77 || key == 'C') { // Right
+    if (key == UI_KEY_RIGHT) { // Right
         moveFocus(1, 0);
         return true;
     }

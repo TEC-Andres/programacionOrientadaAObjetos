@@ -471,6 +471,9 @@ void MapComponent::render(std::ostream &out)
     for (auto &cell : cells_) {
         if (!cell.component) continue;
 
+        // Let the container control positioning (prevents double displacement)
+        cell.component->setUsesExternalPositioning(true);
+
         int compWidth = cell.component->width();
         int compHeight = cell.component->height();
         Align align = cell.component->alignment();
@@ -583,7 +586,7 @@ void MapComponent::render(std::ostream &out)
                 ? content.substr(pos)
                 : content.substr(pos, next - pos);
             out << "\x1b[" << (row + lineNum + 1) << ";" << (col + 1) << "H";
-            out << line;
+            out << line << "\x1b[K";
             ++lineNum;
             if (next == std::string::npos) break;
             pos = next + 1;
@@ -608,11 +611,18 @@ bool MapComponent::handleInput()
 
     int ch = _getch();
     if (ch == 0xE0 || ch == 0x00) {
-        ch = _getch();
-        if (partition_) {
-            if (partition_->handleKey(ch)) return true;
+        int raw = _getch();
+        int key = raw;
+        switch (raw) {
+            case 72: key = UP_ARROW; break;
+            case 80: key = DOWN_ARROW; break;
+            case 75: key = LEFT_ARROW; break;
+            case 77: key = RIGHT_ARROW; break;
         }
-        switch (ch) {
+        if (partition_) {
+            if (partition_->handleKey(key)) return true;
+        }
+        switch (key) {
             case UP_ARROW: moveUp(); return true;
             case DOWN_ARROW: moveDown(); return true;
             case LEFT_ARROW: moveLeft(); return true;
@@ -664,10 +674,10 @@ bool MapComponent::handleInput()
                         if (partition_) {
                             int ak = 0;
                             switch (seq[1]) {
-                                case 'A': ak = 72; break;
-                                case 'B': ak = 80; break;
-                                case 'D': ak = 75; break;
-                                case 'C': ak = 77; break;
+                                case 'A': ak = UP_ARROW; break;
+                                case 'B': ak = DOWN_ARROW; break;
+                                case 'D': ak = LEFT_ARROW; break;
+                                case 'C': ak = RIGHT_ARROW; break;
                             }
                             if (ak && partition_->handleKey(ak)) {
                                 handled = true;
@@ -796,32 +806,28 @@ void MapComponent::run()
     }
     firstFrame_ = false;
 
-    const auto frameDelay = std::chrono::milliseconds(1000 / fps_);
-
     while (running_) {
-        std::ostringstream buffer;
-        render(buffer);
-        const std::string frame = buffer.str();
+        bool inputHandled = handleInput();
 
-        if (frame != lastFrame_) {
-            int curWidth = getConsoleWidth();
-            int curHeight = getConsoleHeight();
-            bool resized = curWidth != lastConsoleWidth_ || curHeight != lastConsoleHeight_;
+        int curWidth = getConsoleWidth();
+        int curHeight = getConsoleHeight();
+        bool resized = curWidth != lastConsoleWidth_ || curHeight != lastConsoleHeight_;
 
-            if (resized) {
-                std::cout << "\x1b[3J\x1b[2J\x1b[H" << std::flush;
-                lastConsoleWidth_ = curWidth;
-                lastConsoleHeight_ = curHeight;
-                removeScrollbar_();
-            }
-            std::cout << "\x1b[H" << frame << std::flush;
-            lastFrame_ = frame;
+        if (resized) {
+            std::cout << "\x1b[3J\x1b[2J\x1b[H" << std::flush;
+            lastConsoleWidth_ = curWidth;
+            lastConsoleHeight_ = curHeight;
+            removeScrollbar_();
         }
 
-        handleInput();
+        if (inputHandled || resized) {
+            std::ostringstream buffer;
+            render(buffer);
+            std::cout << "\x1b[H" << buffer.str() << std::flush;
+        }
 
-        if (running_ && frameDelay.count() > 0) {
-            std::this_thread::sleep_for(frameDelay);
+        if (running_) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000 / fps_));
         }
     }
 }

@@ -6,6 +6,11 @@
 #include <vector>
 #include "params.h"
 
+#define UI_KEY_UP    0x100
+#define UI_KEY_DOWN  0x101
+#define UI_KEY_LEFT  0x102
+#define UI_KEY_RIGHT 0x103
+
 namespace ui {
 
 using namespace component;
