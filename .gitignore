@@ -2,6 +2,7 @@
 .vscode/
 /__release__/
 /issuesTemplates/
+/.idea/
 
 *.o
 *.obj
