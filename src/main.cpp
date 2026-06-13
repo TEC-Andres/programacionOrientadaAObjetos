@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
         0
     );
 
-    ui::MapComponent map(30, 5);
+    ui::MapComponent map(5);
     map.setBackground("#111111");
 
     // Username textbox with ghost message
