@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <limits>
-#include "../lib/loginManager/loginManager.h"
+#include "loginManager/loginManager.h"
 
 int main() {
     // Instantiate our login manager.
