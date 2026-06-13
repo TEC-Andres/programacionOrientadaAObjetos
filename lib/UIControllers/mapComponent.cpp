@@ -22,9 +22,15 @@
     #include <termios.h>
     #include <unistd.h>
     #include <fcntl.h>
+    #include <signal.h>
 #endif
 
 namespace ui {
+
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+static volatile sig_atomic_t g_resize_pending_ = 0;
+extern "C" void handle_winch(int) { g_resize_pending_ = 1; }
+#endif
 
 static int alignmentBand(Align a) {
     switch (a) {
@@ -39,11 +45,6 @@ static int alignmentBand(Align a) {
     return 0;
 }
 
-/**
- * @brief Get the console width in columns.
- * This function retrieves the current width of the console window in terms of columns. It uses platform-specific APIs to query the console dimensions. If the console width cannot be determined, it returns a default value of 80 columns.
- * @return The width of the console in columns.
- */
 static int getConsoleWidth()
 {
 #if defined(_WIN32) || defined(_WIN64)
@@ -60,11 +61,6 @@ static int getConsoleWidth()
     return 80;
 }
 
-/**
- * @brief Get the console height in rows.
- * This function retrieves the current height of the console window in terms of rows. It uses platform-specific APIs to query the console dimensions. If the console height cannot be determined, it returns a default value of 25 rows.
- * @return The height of the console in rows.
- */
 static int getConsoleHeight()
 {
 #if defined(_WIN32) || defined(_WIN64)
@@ -82,58 +78,32 @@ static int getConsoleHeight()
 }
 
 
-MapComponent::MapComponent(int framesPerSecond, int gridColumns)
+MapComponent::MapComponent(int gridColumns)
     : callbacks_(),
       cells_(),
-      fps_(framesPerSecond > 0 ? framesPerSecond : 30),
       running_(false),
-      lastFrame_(),
+      needsRedraw_(false),
       focusRow_(0),
       focusCol_(0),
       hasFocus_(false),
-      firstFrame_(true),
-      lastConsoleWidth_(0),
-      lastConsoleHeight_(0),
+      consoleWidth_(0),
+      consoleHeight_(0),
       gridColumns_(gridColumns > 0 ? gridColumns : 3),
       attachedCount_(0),
       partition_(nullptr)
 {
 }
 
-/**
- * @brief Add a render callback to the MapComponent.
- * Registers a new render callback function that will be called during the rendering process. The callback should accept a reference to an output stream where it can write its rendered content.
- * @param callback A function or lambda that takes an `std::ostream&` parameter and renders content to it.
- * ## Example
- * ```cpp
- * ui::MapComponent map;
- * map.add([](std::ostream &out) {
- *   out << "Rendering callback content" << std::endl;
- * });
- * ```
- */
 void MapComponent::add(const RenderCallback &callback)
 {
     callbacks_.push_back(callback);
 }
 
-/**
- * @brief Place a component on the map.
- * Adds a new component to the map at the specified grid position.
- * @param row The row position where the component will be placed.
- * @param col The column position where the component will be placed.
- * @param component A pointer to the component to be placed on the map.
- */
 void MapComponent::place(int row, int col, IComponent *component)
 {
     cells_.push_back({component, row, col});
 }
 
-/**
- * @brief Attach a component to the map based on its alignment.
- * This method attaches a component to the map by determining its column position based on its alignment. It calculates the appropriate row for the component in that column and adds it to the internal list of cells. The method also increments the count of attached components.
- * @param component A pointer to the component to be attached to the map.
- */
 void MapComponent::attach(IComponent *component)
 {
     Align a = component->alignment();
@@ -163,18 +133,8 @@ void MapComponent::attach(IComponent *component)
     ++attachedCount_;
 }
 
-/**
- * @brief Find the focusable cell in a given direction.
- * Searches for the closest focusable cell in the specified direction from a starting position.
- * @param fromRow The row position to start the search from.
- * @param fromCol The column position to start the search from.
- * @param dRow The row direction to search (negative for up, positive for down).
- * @param dCol The column direction to search (negative for left, positive for right).
- * @return A pointer to the found focusable cell, or nullptr if none is found.
- */
 MapComponent::GridCell *MapComponent::findFocusable(int fromRow, int fromCol, int dRow, int dCol)
 {
-    // Strict pass: require same row (horizontal) or same column (vertical)
     auto strict = [&]() -> GridCell* {
         int bestRow = -1, bestCol = -1;
         GridCell *best = nullptr;
@@ -200,8 +160,6 @@ MapComponent::GridCell *MapComponent::findFocusable(int fromRow, int fromCol, in
     GridCell *result = strict();
     if (result) return result;
 
-    // Relaxed pass: any cell in the given direction (allows cross-row
-    // horizontal and cross-column vertical navigation)
     {
         int bestRow = -1, bestCol = -1;
         GridCell *best = nullptr;
@@ -223,9 +181,6 @@ MapComponent::GridCell *MapComponent::findFocusable(int fromRow, int fromCol, in
         if (best) return best;
     }
 
-    // Any-direction fallback: closest focusable cell regardless of direction
-    // Handles the case where all components share the same column
-    // (same alignment) so left/right can still cycle through them.
     {
         int bestRow = -1, bestCol = -1;
         GridCell *best = nullptr;
@@ -244,11 +199,6 @@ MapComponent::GridCell *MapComponent::findFocusable(int fromRow, int fromCol, in
     }
 }
 
-/**
- * @brief Move the focus up.
- * Moves the focus to the closest focusable cell above the current position.
- * @return true if the focus was moved, false otherwise.
- */
 bool MapComponent::moveUp()
 {
     if (!hasFocus_) return false;
@@ -264,11 +214,6 @@ bool MapComponent::moveUp()
     return true;
 }
 
-/**
- * @brief Move the focus down.
- * Moves the focus to the closest focusable cell below the current position.
- * @return true if the focus was moved, false otherwise.
- */
 bool MapComponent::moveDown()
 {
     if (!hasFocus_) return false;
@@ -284,16 +229,10 @@ bool MapComponent::moveDown()
     return true;
 }
 
-/**
- * @brief Move the focus left.
- * Moves the focus to the closest focusable cell to the left of the current position.
- * @return true if the focus was moved, false otherwise.
- */
 bool MapComponent::moveLeft()
 {
     if (!hasFocus_) return false;
 
-    // Determine the alignment band of the currently focused component
     int band = -1;
     int curIdx = -1;
     for (int i = 0; i < (int)cells_.size(); ++i) {
@@ -306,7 +245,6 @@ bool MapComponent::moveLeft()
     }
     if (band < 0 || curIdx < 0) return false;
 
-    // Collect indices of all focusable cells in the same band (insertion order)
     std::vector<int> sameBand;
     for (int i = 0; i < (int)cells_.size(); ++i) {
         if (cells_[i].component && cells_[i].component->isFocusable() &&
@@ -326,7 +264,6 @@ bool MapComponent::moveLeft()
         return false;
     }
 
-    // Find current position in the band list, then move to previous (left)
     int pos = -1;
     for (int i = 0; i < (int)sameBand.size(); ++i) {
         if (sameBand[i] == curIdx) { pos = i; break; }
@@ -342,16 +279,10 @@ bool MapComponent::moveLeft()
     return true;
 }
 
-/**
- * @brief Move the focus right.
- * Moves the focus to the closest focusable cell to the right of the current position.
- * @return true if the focus was moved, false otherwise.
- */
 bool MapComponent::moveRight()
 {
     if (!hasFocus_) return false;
 
-    // Determine the alignment band of the currently focused component
     int band = -1;
     int curIdx = -1;
     for (int i = 0; i < (int)cells_.size(); ++i) {
@@ -364,7 +295,6 @@ bool MapComponent::moveRight()
     }
     if (band < 0 || curIdx < 0) return false;
 
-    // Collect indices of all focusable cells in the same band (insertion order)
     std::vector<int> sameBand;
     for (int i = 0; i < (int)cells_.size(); ++i) {
         if (cells_[i].component && cells_[i].component->isFocusable() &&
@@ -384,7 +314,6 @@ bool MapComponent::moveRight()
         return false;
     }
 
-    // Find current position in the band list, then move to next (right)
     int pos = -1;
     for (int i = 0; i < (int)sameBand.size(); ++i) {
         if (sameBand[i] == curIdx) { pos = i; break; }
@@ -400,11 +329,6 @@ bool MapComponent::moveRight()
     return true;
 }
 
-/**
- * @brief Activate the currently focused component.
- * Triggers the activation event for the component that currently has focus.
- * @return true if the component was activated, false otherwise.
- */
 bool MapComponent::activate()
 {
     if (!hasFocus_) return false;
@@ -417,10 +341,6 @@ bool MapComponent::activate()
     return false;
 }
 
-/**
- * @brief Focus the first focusable component.
- * Sets the focus to the first focusable component in the map.
- */
 void MapComponent::focusFirstFocusable()
 {
     for (auto &cell : cells_) {
@@ -435,18 +355,13 @@ void MapComponent::focusFirstFocusable()
     hasFocus_ = false;
 }
 
-/**
- * @brief Render the map component.
- * Draws the map component and its child components.
- * @param out The output stream to render to.
- */
 void MapComponent::render(std::ostream &out)
 {
     struct Rect { int row, col, width, height; };
     std::vector<Rect> occupied;
 
-    int consoleWidth = getConsoleWidth();
-    int consoleHeight = getConsoleHeight();
+    int cw = consoleWidth_;
+    int ch = consoleHeight_;
 
     // --- Render callbacks and count their rows ---
     std::ostringstream cbBuf;
@@ -460,10 +375,14 @@ void MapComponent::render(std::ostream &out)
     }
     out << cbStr;
 
-    // If a partition is set, update boundaries and use it instead of the grid
+    // If a partition is set, delegate rendering to it
     if (partition_) {
         partition_->update(cbRows);
         partition_->render(out);
+        // After partition render, clear dirty flags on all components
+        for (auto &cell : cells_) {
+            if (cell.component) cell.component->clearDirty();
+        }
         return;
     }
 
@@ -471,7 +390,6 @@ void MapComponent::render(std::ostream &out)
     for (auto &cell : cells_) {
         if (!cell.component) continue;
 
-        // Let the container control positioning (prevents double displacement)
         cell.component->setUsesExternalPositioning(true);
 
         int compWidth = cell.component->width();
@@ -488,48 +406,46 @@ void MapComponent::render(std::ostream &out)
                 break;
             case Align::Center:
             case Align::TopCenter:
-                col = (consoleWidth - compWidth) / 2;
+                col = (cw - compWidth) / 2;
                 break;
             case Align::Right:
             case Align::TopRight:
-                col = consoleWidth - compWidth;
+                col = cw - compWidth;
                 break;
             case Align::MiddleLeft:
-                row = (consoleHeight - compHeight) / 2;
+                row = (ch - compHeight) / 2;
                 usesGridRow = false;
                 break;
             case Align::MiddleCenter:
-                col = (consoleWidth - compWidth) / 2;
-                row = (consoleHeight - compHeight) / 2;
+                col = (cw - compWidth) / 2;
+                row = (ch - compHeight) / 2;
                 usesGridRow = false;
                 break;
             case Align::MiddleRight:
-                col = consoleWidth - compWidth;
-                row = (consoleHeight - compHeight) / 2;
+                col = cw - compWidth;
+                row = (ch - compHeight) / 2;
                 usesGridRow = false;
                 break;
             case Align::BottomLeft:
-                row = consoleHeight - compHeight;
+                row = ch - compHeight;
                 usesGridRow = false;
                 break;
             case Align::BottomCenter:
-                col = (consoleWidth - compWidth) / 2;
-                row = consoleHeight - compHeight;
+                col = (cw - compWidth) / 2;
+                row = ch - compHeight;
                 usesGridRow = false;
                 break;
             case Align::BottomRight:
-                col = consoleWidth - compWidth;
-                row = consoleHeight - compHeight;
+                col = cw - compWidth;
+                row = ch - compHeight;
                 usesGridRow = false;
                 break;
         }
 
-        // Offset below callbacks for top-aligned (grid-row-based) components
         if (usesGridRow) {
             row += cbRows;
         }
 
-        // Apply percentage displacement based on alignment direction
         {
             float dx = cell.component->displacementX();
             float dy = cell.component->displacementY();
@@ -554,14 +470,13 @@ void MapComponent::render(std::ostream &out)
         if (col < 0) col = 0;
         if (row < 0) row = 0;
 
-        // --- Resolve overlap with other cells by shifting horizontally ---
         for (int attempt = 0; attempt < 20; ++attempt) {
             bool conflict = false;
             for (auto &o : occupied) {
                 if (row < o.row + o.height && row + compHeight > o.row &&
                     col < o.col + o.width && col + compWidth > o.col) {
                     int rightEdge = o.col + o.width;
-                    if (rightEdge + compWidth <= consoleWidth) {
+                    if (rightEdge + compWidth <= cw) {
                         col = rightEdge;
                     } else {
                         int leftEdge = o.col - compWidth;
@@ -576,32 +491,28 @@ void MapComponent::render(std::ostream &out)
             if (!conflict) break;
         }
 
-        // --- Render line by line with cursor positioning ---
-        std::string content = cell.component->toString();
-        size_t pos = 0;
-        int lineNum = 0;
-        while (pos < content.size()) {
-            size_t next = content.find('\n', pos);
-            std::string line = (next == std::string::npos)
-                ? content.substr(pos)
-                : content.substr(pos, next - pos);
-            out << "\x1b[" << (row + lineNum + 1) << ";" << (col + 1) << "H";
-            out << line << "\x1b[K";
-            ++lineNum;
-            if (next == std::string::npos) break;
-            pos = next + 1;
+        // --- Render dirty components only (or all on initial frame) ---
+        if (cell.component->isDirty()) {
+            std::string content = cell.component->toString();
+            size_t pos = 0;
+            int lineNum = 0;
+            while (pos < content.size()) {
+                size_t next = content.find('\n', pos);
+                std::string line = (next == std::string::npos)
+                    ? content.substr(pos)
+                    : content.substr(pos, next - pos);
+                out << "\x1b[" << (row + lineNum + 1) << ";" << (col + 1) << "H";
+                out << line << "\x1b[K";
+                ++lineNum;
+                if (next == std::string::npos) break;
+                pos = next + 1;
+            }
+            cell.component->clearDirty();
         }
 
         occupied.push_back({row, col, compWidth, compHeight});
     }
 }
-
-/**
- * @brief Handle input events.
- * Processes input events and triggers appropriate actions.
- * @return true if an input event was handled, false otherwise.
- */
-
 
 bool MapComponent::handleInput()
 {
@@ -619,6 +530,7 @@ bool MapComponent::handleInput()
             case 75: key = LEFT_ARROW; break;
             case 77: key = RIGHT_ARROW; break;
         }
+        needsRedraw_ = true;
         if (partition_) {
             if (partition_->handleKey(key)) return true;
         }
@@ -629,11 +541,10 @@ bool MapComponent::handleInput()
             case RIGHT_ARROW: moveRight(); return true;
         }
     } else {
-        // Delegate to partition first
+        needsRedraw_ = true;
         if (partition_) {
             if (partition_->handleKey(ch)) return true;
         }
-        // Delegate to the focused component in grid
         if (hasFocus_) {
             for (auto &cell : cells_) {
                 if (cell.component && cell.row == focusRow_ && cell.col == focusCol_) {
@@ -667,6 +578,7 @@ bool MapComponent::handleInput()
     if (select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv) > 0) {
         char ch;
         if (read(STDIN_FILENO, &ch, 1) > 0) {
+            needsRedraw_ = true;
             if (ch == '\x1b') {
                 char seq[2];
                 if (read(STDIN_FILENO, &seq[0], 1) > 0 && seq[0] == '[') {
@@ -694,7 +606,6 @@ bool MapComponent::handleInput()
                     }
                 }
             } else {
-                // Delegate to partition first
                 if (partition_ && partition_->handleKey((unsigned char)ch)) {
                     handled = true;
                 }
@@ -708,7 +619,6 @@ bool MapComponent::handleInput()
                             break;
                         }
                     }
-                    if (handled) { /* skip default processing */ }
                 }
                 if (!handled) {
                     switch (ch) {
@@ -730,10 +640,62 @@ bool MapComponent::handleInput()
     return false;
 }
 
-/**
- * @brief Run the map component.
- * Starts the main loop for the map component.
- */
+void MapComponent::update()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    if (wakeEvent_) {
+        SetEvent((HANDLE)wakeEvent_);
+    }
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    if (wakePipe_[1] != -1) {
+        char c = 1;
+        (void)write(wakePipe_[1], &c, 1);
+    }
+#endif
+    needsRedraw_ = true;
+}
+
+void MapComponent::clearScreen_()
+{
+    std::cout << "\x1b[3J\x1b[2J\x1b[H" << std::flush;
+}
+
+void MapComponent::updateConsoleSize_()
+{
+    int cw = getConsoleWidth();
+    int ch = getConsoleHeight();
+    if (cw != consoleWidth_ || ch != consoleHeight_) {
+        consoleWidth_ = cw;
+        consoleHeight_ = ch;
+        needsRedraw_ = true;
+    }
+}
+
+void MapComponent::drainInputBuffer_()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD nEvents = 0;
+    while (true) {
+        GetNumberOfConsoleInputEvents(hIn, &nEvents);
+        if (nEvents == 0) break;
+        INPUT_RECORD ir;
+        DWORD read;
+        ReadConsoleInput(hIn, &ir, 1, &read);
+    }
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    fd_set fds;
+    struct timeval tv = {0, 0};
+    char c;
+    while (true) {
+        FD_ZERO(&fds);
+        FD_SET(STDIN_FILENO, &fds);
+        if (select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) <= 0) break;
+        if (read(STDIN_FILENO, &c, 1) <= 0) break;
+    }
+#endif
+}
+
 void MapComponent::run()
 {
 #if defined(_WIN32) || defined(_WIN64)
@@ -746,11 +708,36 @@ void MapComponent::run()
         }
     }
 
+    // Create wakeup event for update() calls
+    wakeEvent_ = CreateEventW(NULL, FALSE, FALSE, NULL);
+
     CONSOLE_CURSOR_INFO cursorInfo;
     GetConsoleCursorInfo(hOut, &cursorInfo);
     cursorInfo.bVisible = FALSE;
     SetConsoleCursorInfo(hOut, &cursorInfo);
+#else
+    // Enable raw mode for Linux/Mac
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+    // Create wakeup pipe for update() calls
+    wakePipe_[0] = -1;
+    wakePipe_[1] = -1;
+    if (pipe(wakePipe_) == 0) {
+        fcntl(wakePipe_[0], F_SETFL, O_NONBLOCK);
+        fcntl(wakePipe_[1], F_SETFL, O_NONBLOCK);
+    }
+
+    signal(SIGWINCH, handle_winch);
 #endif
+
+    // Enable alternate screen buffer
+    std::cout << "\033[?1049h";
+    // Drain stale events from initialization (e.g. spurious resize)
+    drainInputBuffer_();
 
     focusFirstFocusable();
     if (partition_) {
@@ -763,106 +750,101 @@ void MapComponent::run()
         std::cout.flush();
     }
 
-    // Poll terminal size until it stabilises.  Some terminals (Windows
-    // Terminal, VSC terminal) report a default 80x25 initially via
-    // GetConsoleScreenBufferInfo.  We wait for 3 consecutive identical
-    // reads so the size has genuinely settled.
-    {
-        int prevW = 0, prevH = 0, stable = 0;
-        for (int i = 0; i < 30; ++i) {
-            int w = getConsoleWidth();
-            int h = getConsoleHeight();
-            if (w > 0 && h > 0) {
-                if (w == prevW && h == prevH) {
-                    ++stable;
-                    if (stable >= 3) {
-                        lastConsoleWidth_ = w;
-                        lastConsoleHeight_ = h;
-                        break;
-                    }
-                } else {
-                    stable = 0;
-                }
-                prevW = w;
-                prevH = h;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        }
-        if (lastConsoleWidth_ <= 0)  lastConsoleWidth_  = getConsoleWidth();
-        if (lastConsoleHeight_ <= 0) lastConsoleHeight_ = getConsoleHeight();
+    // Initial console size
+    consoleWidth_ = getConsoleWidth();
+    consoleHeight_ = getConsoleHeight();
+
+    // Set all components dirty for initial full render
+    for (auto &cell : cells_) {
+        if (cell.component) cell.component->setDirty();
     }
 
-    // Remove scrollbar after the terminal size has settled, then clear
-    // leftover shell output and draw the very first frame so the terminal
-    // shows content immediately.  The main loop below handles subsequent
-    // updates and resize detection.
-    std::cout << "\x1b[3J\x1b[2J\x1b[H" << std::flush;
-    removeScrollbar_();
+    // Full clear and first frame
+    clearScreen_();
     {
         std::ostringstream buf;
         render(buf);
-        lastFrame_ = buf.str();
-        std::cout << lastFrame_ << std::flush;
+        std::cout << buf.str() << std::flush;
     }
-    firstFrame_ = false;
 
     while (running_) {
-        bool inputHandled = handleInput();
-
-        int curWidth = getConsoleWidth();
-        int curHeight = getConsoleHeight();
-        bool resized = curWidth != lastConsoleWidth_ || curHeight != lastConsoleHeight_;
-
-        if (resized) {
-            std::cout << "\x1b[3J\x1b[2J\x1b[H" << std::flush;
-            lastConsoleWidth_ = curWidth;
-            lastConsoleHeight_ = curHeight;
-            removeScrollbar_();
-        }
-
-        if (inputHandled || resized) {
-            std::ostringstream buffer;
-            render(buffer);
-            std::cout << "\x1b[H" << buffer.str() << std::flush;
-        }
-
-        if (running_) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000 / fps_));
-        }
-    }
-}
-
-void MapComponent::removeScrollbar_()
-{
 #if defined(_WIN32) || defined(_WIN64)
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hOut != INVALID_HANDLE_VALUE) {
-        COORD newSize = {
-            static_cast<SHORT>(lastConsoleWidth_),
-            static_cast<SHORT>(lastConsoleHeight_)
-        };
-        SetConsoleScreenBufferSize(hOut, newSize);
-    }
-#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
-    struct winsize w;
-    w.ws_col = static_cast<unsigned short>(lastConsoleWidth_);
-    w.ws_row = static_cast<unsigned short>(lastConsoleHeight_);
-    w.ws_xpixel = 0;
-    w.ws_ypixel = 0;
-    ioctl(STDOUT_FILENO, TIOCSWINSZ, &w);
-#endif
-}
+        HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+        HANDLE waitHandles[2] = { hIn, (HANDLE)wakeEvent_ };
+        DWORD waitRes = WaitForMultipleObjects(2, waitHandles, FALSE, INFINITE);
 
-/**
- * @brief Stop the map component.
- * Signals the main loop to stop running and exit.
- */
-void MapComponent::stop()
-{
-    running_ = false;
+        if (waitRes == WAIT_OBJECT_0) {
+            while (_kbhit()) {
+                handleInput();
+            }
+        }
+
+        updateConsoleSize_();
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(STDIN_FILENO, &fds);
+        int nfds = STDIN_FILENO + 1;
+        if (wakePipe_[0] != -1) {
+            FD_SET(wakePipe_[0], &fds);
+            if (wakePipe_[0] >= nfds) nfds = wakePipe_[0] + 1;
+        }
+
+        struct timeval tv = {0, 50000};
+        int selRet = select(nfds, &fds, NULL, NULL, &tv);
+
+        if (selRet > 0) {
+            if (wakePipe_[0] != -1 && FD_ISSET(wakePipe_[0], &fds)) {
+                char buf[64];
+                while (read(wakePipe_[0], buf, sizeof(buf)) > 0) {}
+            }
+
+            if (FD_ISSET(STDIN_FILENO, &fds)) {
+                handleInput();
+            }
+        }
+
+        if (g_resize_pending_) {
+            g_resize_pending_ = 0;
+            auto sz = getConsoleWidth();
+            auto sh = getConsoleHeight();
+            if (sz != consoleWidth_ || sh != consoleHeight_) {
+                consoleWidth_ = sz;
+                consoleHeight_ = sh;
+                needsRedraw_ = true;
+            }
+        }
+#endif
+
+        if (needsRedraw_) {
+            std::ostringstream buf;
+            render(buf);
+            std::cout << "\x1b[H" << buf.str() << std::flush;
+            needsRedraw_ = false;
+        }
+    }
+
+    // Restore terminal
+    std::cout << "\033[?25h";
+    std::cout << "\033[?1049l";
     std::cout << "\x1b]11;#000000\x07";
     std::cout << "\x1b[0m";
     std::cout.flush();
+
+#if defined(_WIN32) || defined(_WIN64)
+    if (wakeEvent_) {
+        CloseHandle((HANDLE)wakeEvent_);
+        wakeEvent_ = nullptr;
+    }
+#else
+    if (wakePipe_[0] != -1) { close(wakePipe_[0]); close(wakePipe_[1]); }
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+#endif
+}
+
+void MapComponent::stop()
+{
+    running_ = false;
 }
 
 } // namespace ui

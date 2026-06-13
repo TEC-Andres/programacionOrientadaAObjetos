@@ -49,6 +49,7 @@ bool TextBox::handleKey(int key)
     if (key == 8 || key == 127) {
         if (!text_.empty()) {
             text_.pop_back();
+            setDirty();
             if (onChange_) onChange_(text_);
         }
         return true;
@@ -58,6 +59,7 @@ bool TextBox::handleKey(int key)
     if (key >= 32 && key <= 126) {
         if ((int)text_.size() < maxLength_) {
             text_ += (char)key;
+            setDirty();
             if (onChange_) onChange_(text_);
         }
         return true;

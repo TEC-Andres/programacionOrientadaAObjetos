@@ -67,7 +67,7 @@ public:
     std::string toString() const override;
 
     bool isFocusable() const override { return true; }
-    void setSelected(bool s) override { selected_ = s; }
+    void setSelected(bool s) override { if (s != selected_) { selected_ = s; setDirty(); } }
     bool selected() const override { return selected_; }
     bool handleKey(int key) override;
 

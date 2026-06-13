@@ -82,8 +82,11 @@ public:
     virtual bool handleKey(int /*key*/) { return false; }
     virtual bool usesExternalPositioning() const { return false; }
     virtual void setUsesExternalPositioning(bool) {}
+    virtual void setDirty() { dirty_ = true; }
+    virtual void clearDirty() { dirty_ = false; }
+    virtual bool isDirty() const { return dirty_; }
     Align alignment() const { return align_; }
-    void setAlignment(Align a) { align_ = a; }
+    void setAlignment(Align a) { align_ = a; setDirty(); }
     float displacementX() const { return displacementX_; }
     void setDisplacementX(float pct) { displacementX_ = pct; }
     float displacementY() const { return displacementY_; }
@@ -93,6 +96,7 @@ protected:
     Align align_ = Align::Left;
     float displacementX_ = 0.0f;
     float displacementY_ = 0.0f;
+    bool dirty_ = true;
 };
 
 /**
