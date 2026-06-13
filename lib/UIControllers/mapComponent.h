@@ -4,8 +4,6 @@
 #include <vector>
 #include <string>
 #include <ostream>
-#include <chrono>
-#include <thread>
 #include "_component.h"
 
 #define UP_ARROW    0x100
@@ -17,21 +15,11 @@ namespace ui {
 
 class Partition;
 
-/**
- * @brief Construct a new MapComponent object.
- * Initializes the MapComponent with an optional frames-per-second (FPS) setting for rendering. The constructor sets up internal state for managing render callbacks, grid cells, focus, and input handling.
- * @param framesPerSecond The desired frames per second for rendering the map (default: 30). Must be a positive integer; otherwise, it defaults to 30 FPS.
- * ## Example
- * ```cpp
- * ui::MapComponent map(60); // Create a MapComponent with 60 FPS
- * ui::MapComponent defaultMap; // Create a MapComponent with default 30 FPS
- * ```
-*/
 class MapComponent {
 public:
     using RenderCallback = std::function<void(std::ostream &)>;
 
-    MapComponent(int framesPerSecond = 30, int gridColumns = 3);
+    MapComponent(int gridColumns = 3);
 
     void add(const RenderCallback &callback);
 
@@ -58,6 +46,8 @@ public:
     void run();
     void stop();
 
+    void update(); // wake the event loop to trigger a redraw
+
     void setBackground(const std::string &hexColor) { background_ = hexColor; }
     const std::string &background() const { return background_; }
 
@@ -70,23 +60,28 @@ private:
 
     void focusFirstFocusable();
     GridCell *findFocusable(int fromRow, int fromCol, int dRow, int dCol);
-    void removeScrollbar_();
+    void drainInputBuffer_();
+    void clearScreen_();
+    void updateConsoleSize_();
 
     std::vector<RenderCallback> callbacks_;
     std::vector<GridCell> cells_;
-    int fps_;
     bool running_;
-    std::string lastFrame_;
+    bool needsRedraw_;
     int focusRow_;
     int focusCol_;
     bool hasFocus_;
-    bool firstFrame_;
-    int lastConsoleWidth_;
-    int lastConsoleHeight_;
+    int consoleWidth_;
+    int consoleHeight_;
     int gridColumns_;
     int attachedCount_;
     std::string background_;
     Partition *partition_ = nullptr;
+#if defined(_WIN32) || defined(_WIN64)
+    void *wakeEvent_ = nullptr;
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+    int wakePipe_[2];
+#endif
 };
 
 } // namespace ui

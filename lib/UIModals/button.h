@@ -55,7 +55,7 @@ public:
     std::string toString() const override;
 
     void setText(const std::string &text) { text_ = text; }
-    void setSelected(bool s) override { selected_ = s; }
+    void setSelected(bool s) override { if (s != selected_) { selected_ = s; setDirty(); } }
     bool selected() const override { return selected_; }
     bool isFocusable() const override { return true; }
     void onActivate() override { if (onActivate_) onActivate_(); }
