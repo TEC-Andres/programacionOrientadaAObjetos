@@ -1,5 +1,5 @@
 #include "loginManager.h"
-#include "../SHA256/SHA256.h"
+#include "crypto/SHA256.h"
 #include <fstream>
 #include <iostream>
 #include <random>
