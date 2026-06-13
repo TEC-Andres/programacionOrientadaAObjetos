@@ -1,10 +1,8 @@
 # Data Table in Dashboard
 
 ## module description
-this document explains how data maps are converted into aligned, stylized rows inside the client command shell.
+esta seccion contendra la documentacion de la tabla de datos principal una vez que se implemente la logica correspondiente en el codigo del sistema.
 
-## terminal grid layout procedure
-the display layout parses object matrices using this simple procedure:
-* step 1: reads column data profiles to calculate the longest necessary padding length.
-* step 2: prints horizontal divider lines using plain ascii interface symbols.
-* step 3: injects responsive color values via ansi escape strings based on video score properties.
+## proximos objetivos
+* desplegar la informacion organizada en filas y columnas desde la terminal.
+* formatear la alineacion de los datos para facilitar su lectura.ts responsive color values via ansi escape strings based on video score properties.
