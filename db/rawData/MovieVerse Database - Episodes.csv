@@ -1,0 +1,520 @@
+ID,Name,Length,Genre,Rating,Season,Title,EpisodeNumber
+1,Yellowstone,92,Drama,8.1,1,Daybreak,1
+2,Yellowstone,45,Drama,7.8,1,Kill the Messenger,2
+3,Yellowstone,48,Drama,8.1,1,No Good Horses,3
+4,Yellowstone,46,Drama,8,1,The Long Black Train,4
+5,Yellowstone,45,Drama,8.2,1,Coming Home,5
+6,Yellowstone,47,Drama,8,1,The Remembering,6
+7,Yellowstone,48,Drama,8.3,1,A Monster Is Among Us,7
+8,Yellowstone,47,Drama,8.4,1,The Unravelling: Pt. 1,8
+9,Yellowstone,48,Drama,8.7,1,The Unravelling: Pt. 2,9
+10,Yellowstone,46,Drama,8,2,A Thundering,1
+11,Yellowstone,47,Drama,8.1,2,New Beginnings,2
+12,Yellowstone,47,Drama,8.2,2,The Reek of Desperation,3
+13,Yellowstone,45,Drama,8.4,2,Only Devils Left,4
+14,Yellowstone,46,Drama,8.5,2,Touching Your Enemy,5
+15,Yellowstone,48,Drama,8.6,2,Blood the Boy,6
+16,Yellowstone,47,Drama,9.2,2,Resurrection Day,7
+17,Yellowstone,47,Drama,8.7,2,Behind Us Only Grey,8
+18,Yellowstone,47,Drama,8.9,2,Enemies by Monday,9
+19,Yellowstone,49,Drama,9.1,2,Sins of the Father,10
+20,Yellowstone,45,Drama,8.1,3,You're the Indian Now,1
+21,Yellowstone,46,Drama,8.3,3,Freight Trains and Monsters,2
+22,Yellowstone,46,Drama,8,3,An Acceptable Surrender,3
+23,Yellowstone,47,Drama,8.2,3,Going Back to Cali,4
+24,Yellowstone,47,Drama,8.3,3,Cowboys and Dreamers,5
+25,Yellowstone,46,Drama,8.5,3,All for Nothing,6
+26,Yellowstone,48,Drama,8.4,3,The Beating,7
+27,Yellowstone,47,Drama,8.7,3,I Killed a Man Today,8
+28,Yellowstone,48,Drama,8.8,3,Meaner Than Evil,9
+29,Yellowstone,50,Drama,9,3,The World Is Purple,10
+30,Yellowstone,58,Drama,9.1,4,Half the Money,1
+31,Yellowstone,47,Drama,8.4,4,Phantom Pain,2
+32,Yellowstone,45,Drama,8.2,4,All I See Is You,3
+33,Yellowstone,47,Drama,8.3,4,Winning or Learning,4
+34,Yellowstone,48,Drama,8.1,4,Under a Blanket of Red,5
+35,Yellowstone,47,Drama,8.4,4,I Want to Be Him,6
+36,Yellowstone,47,Drama,8.5,4,Keep the Wolves Close,7
+37,Yellowstone,48,Drama,8.6,4,No Kindness for the Coward,8
+38,Yellowstone,47,Drama,8.7,4,No Such Thing as Fair,9
+39,Yellowstone,59,Drama,8.9,4,Grass on the Streets and Weeds on the Rooftops,10
+40,Yellowstone,64,Drama,8,5,One Hundred Years Is Nothing,1
+41,Yellowstone,59,Drama,7.9,5,The Sting of Wisdom,2
+42,Yellowstone,53,Drama,7.8,5,Tall Drink of Water,3
+43,Yellowstone,58,Drama,8.1,5,Horses in Heaven,4
+44,Yellowstone,52,Drama,7.7,5,Watch 'Em Ride Away,5
+45,Yellowstone,54,Drama,8.2,5,"Cigarettes, Whiskey, a Meadow and You",6
+46,Yellowstone,55,Drama,8.4,5,The Dream Is Not Me,7
+47,Yellowstone,51,Drama,8,5,A Knife and No Coin,8
+48,Yellowstone,49,Drama,7.6,5,Desire Is All You Need,9
+49,Yellowstone,47,Drama,7.7,5,The Apocalypse of Change,10
+50,Yellowstone,47,Drama,8.3,5,Three Fifty-Three,11
+51,Yellowstone,52,Drama,7.9,5,Counting Coup,12
+52,Yellowstone,54,Drama,8.1,5,Give the World Away,13
+53,Yellowstone,86,Drama,8.5,5,Life Is a Promise,14
+54,Bridgerton,58,Drama,8,1,Diamond of the First Water,1
+55,Bridgerton,62,Drama,8.1,1,Shock and Delight,2
+56,Bridgerton,57,Drama,8,1,Art of the Swoon,3
+57,Bridgerton,61,Drama,8,1,An Affair of Honor,4
+58,Bridgerton,61,Drama,8.2,1,The Duke and I,5
+59,Bridgerton,57,Drama,8,1,Swish,6
+60,Bridgerton,60,Drama,8.1,1,Oceans Apart,7
+61,Bridgerton,72,Drama,7.8,1,After the Rain,8
+62,Bridgerton,70,Drama,7.8,2,Capital R Rake,1
+63,Bridgerton,53,Drama,7.8,2,Off to the Races,2
+64,Bridgerton,68,Drama,7.8,2,A Bee in Your Bonnet,3
+65,Bridgerton,58,Drama,8.2,2,Victory,4
+66,Bridgerton,58,Drama,8.2,2,An Unthinkable Fate,5
+67,Bridgerton,68,Drama,8.2,2,The Choice,6
+68,Bridgerton,58,Drama,8.2,2,Harmony,7
+69,Bridgerton,71,Drama,8.3,2,The Viscount Who Loved Me,8
+70,Bridgerton,58,Drama,7.6,3,Out of the Shadows,1
+71,Bridgerton,52,Drama,7.7,3,How Bright the Moon,2
+72,Bridgerton,55,Drama,7.6,3,Forces of Nature,3
+73,Bridgerton,55,Drama,7.9,3,Old Friends,4
+74,Bridgerton,58,Drama,8.2,3,Tick Tock,5
+75,Bridgerton,65,Drama,8.1,3,Romancing Mister Bridgerton,6
+76,Bridgerton,61,Drama,8.1,3,Joining of Hands,7
+77,Bridgerton,76,Drama,8.2,3,Into the Light,8
+78,Bridgerton,63,Drama,7.8,4,The Waltz,1
+79,Bridgerton,65,Drama,8,4,Time Transfixed,2
+80,Bridgerton,70,Drama,7.8,4,The Field Next to the Other Road,3
+81,Bridgerton,63,Drama,7.9,4,An Offer from a Gentleman,4
+82,Bridgerton,64,Drama,7.8,4,Yes or No,5
+83,Bridgerton,67,Drama,8,4,The Passing Winter,6
+84,Bridgerton,67,Drama,8,4,The Beyond,7
+85,Bridgerton,68,Drama,8,4,Dance in the Country,8
+86,Is It Cake?,37,Reality,6,1,Fast-Food Fakeout,1
+87,Is It Cake?,38,Reality,6.4,1,Phony Fashion,2
+88,Is It Cake?,39,Reality,6.6,1,Fake by the Ocean,3
+89,Is It Cake?,41,Reality,6.9,1,Imposter in Aisle 5,4
+90,Is It Cake?,40,Reality,6.5,1,Cake Crashers,5
+91,Is It Cake?,39,Reality,6.6,1,Garage Mirage,6
+92,Is It Cake?,42,Reality,6.8,1,Toying Around,7
+93,Is It Cake?,43,Reality,7,1,Winner Fakes All!,8
+94,Is It Cake?,46,Reality,6.7,2,Everything Is Cake!,1
+95,Is It Cake?,46,Reality,6.8,2,Body By Cake,2
+96,Is It Cake?,43,Reality,6.9,2,Cake University,3
+97,Is It Cake?,43,Reality,6.7,2,That 90's Cake,4
+98,Is It Cake?,41,Reality,6.8,2,S'more Cake Please,5
+99,Is It Cake?,39,Reality,6.4,2,So Fresh and So Cake,6
+100,Is It Cake?,44,Reality,6.9,2,Cake Me Out to the Ballgame,7
+101,Is It Cake?,45,Reality,7.1,2,Winner Cakes All!,8
+102,Is It Cake?,45,Reality,6.8,3,Cake Whodunit,1
+103,Is It Cake?,45,Reality,6.9,3,Swimming With Cakes,2
+104,Is It Cake?,45,Reality,7,3,Head-to-Head Battle Royale,3
+105,Is It Cake?,44,Reality,6.7,3,Knock Knock... Cake Service!,4
+106,Is It Cake?,45,Reality,6.8,3,Welcome to the Jungle,5
+107,Is It Cake?,45,Reality,6.9,3,Cake on Fire,6
+108,Is It Cake?,46,Reality,7,3,Cakes Ahoy!,7
+109,Is It Cake?,47,Reality,7.2,3,Winner Cakes All!,8
+110,Club de Cuervos,43,Comedy,7.5,1,Sé un capitán,1
+111,Club de Cuervos,43,Comedy,7.5,1,Hacemos jabón,2
+112,Club de Cuervos,40,Comedy,7.6,1,Respuesta uniforme,3
+113,Club de Cuervos,38,Comedy,7.9,1,Bofetada,4
+114,Club de Cuervos,41,Comedy,7.7,1,Barreras para salir,5
+115,Club de Cuervos,41,Comedy,7.8,1,Afortunado en jugar,6
+116,Club de Cuervos,45,Comedy,8,1,Nuestro Guggenheim,7
+117,Club de Cuervos,36,Comedy,7.8,1,Aitor,8
+118,Club de Cuervos,37,Comedy,7.9,1,Fiebre española,9
+119,Club de Cuervos,39,Comedy,8,1,Nuevo padrote en el pueblo,10
+120,Club de Cuervos,42,Comedy,8.1,1,Empuja,11
+121,Club de Cuervos,46,Comedy,8.2,1,"Feliz cumpleaños, Sr. Presidente",12
+122,Club de Cuervos,49,Comedy,8.3,1,Iglesias vs. Iglesias,13
+123,Club de Cuervos,42,Comedy,7.8,2,Descenso,1
+124,Club de Cuervos,40,Comedy,7.7,2,Bienvenidos a Segunda,2
+125,Club de Cuervos,43,Comedy,7.7,2,¿A quién estás buscando?,3
+126,Club de Cuervos,41,Comedy,7.8,2,Ho Oponopono,4
+127,Club de Cuervos,42,Comedy,7.7,2,Matahari,5
+128,Club de Cuervos,44,Comedy,8,2,El oasis en el desierto,6
+129,Club de Cuervos,45,Comedy,8.1,2,La salvadora,7
+130,Club de Cuervos,41,Comedy,7.9,2,La tregua,8
+131,Club de Cuervos,43,Comedy,8.1,2,La maldición de la pluma negra,9
+132,Club de Cuervos,50,Comedy,8.4,2,Iglesias vs. Iglesias 2,10
+133,Club de Cuervos,46,Comedy,7.9,3,La tercera generación,1
+134,Club de Cuervos,44,Comedy,7.8,3,El Tratado de Versailles 14,2
+135,Club de Cuervos,43,Comedy,7.7,3,La pedacería,3
+136,Club de Cuervos,45,Comedy,7.9,3,¿Por placer o negocios?,4
+137,Club de Cuervos,47,Comedy,8,3,El regreso a casa,5
+138,Club de Cuervos,42,Comedy,7.8,3,Nuestro Cuau,6
+139,Club de Cuervos,46,Comedy,8.1,3,Iglesias y Estado,7
+140,Club de Cuervos,43,Comedy,7.9,3,Puebla…,8
+141,Club de Cuervos,48,Comedy,8.2,3,Inocencia interrumpida,9
+142,Club de Cuervos,52,Comedy,8.5,3,El corazón de Nuevo Toledo,10
+143,Club de Cuervos,47,Comedy,8,4,Diego Villalobos,1
+144,Club de Cuervos,42,Comedy,7.8,4,Tienes email,2
+145,Club de Cuervos,44,Comedy,7.9,4,Valle de Silicon,3
+146,Club de Cuervos,45,Comedy,8,4,La puta de Nuevo Toledo,4
+147,Club de Cuervos,43,Comedy,8.1,4,Cyrano de Bergerac,5
+148,Club de Cuervos,46,Comedy,8.2,4,La peste negra,6
+149,Club de Cuervos,44,Comedy,8.3,4,Cuatro milagritos,7
+150,Club de Cuervos,45,Comedy,8.4,4,Campo de concentración,8
+151,Club de Cuervos,48,Comedy,8.6,4,Loco por Mary Luz,9
+152,Club de Cuervos,50,Comedy,8.8,4,Un camino para dos,10
+153,Club de Cuervos,54,Comedy,9.4,4,Un viaje a la luna,11
+154,Club de Cuervos,58,Comedy,9.5,4,Todos Somos Cuervos,12
+155,The Lincoln Lawyer,49,Drama,7.6,1,He Rides Again,1
+156,The Lincoln Lawyer,47,Drama,7.8,1,The Magic Bullet,2
+157,The Lincoln Lawyer,50,Drama,7.8,1,Momentum,3
+158,The Lincoln Lawyer,46,Drama,7.9,1,Chaos Theory,4
+159,The Lincoln Lawyer,47,Drama,7.6,1,Twelve Lemmings in a Box,5
+160,The Lincoln Lawyer,48,Drama,7.7,1,Bent,6
+161,The Lincoln Lawyer,49,Drama,7.8,1,Lemming Number Seven,7
+162,The Lincoln Lawyer,52,Drama,7.9,1,The Magic Bullet Redux,8
+163,The Lincoln Lawyer,55,Drama,7.9,1,The Uncanny Valley,9
+164,The Lincoln Lawyer,56,Drama,8,1,The Brass Verdict,10
+165,The Lincoln Lawyer,51,Drama,7.8,2,The Rules of Professional Conduct,1
+166,The Lincoln Lawyer,47,Drama,7.9,2,Obligations,2
+167,The Lincoln Lawyer,53,Drama,7.7,2,Conflicts,3
+168,The Lincoln Lawyer,48,Drama,7.9,2,Discovery,4
+169,The Lincoln Lawyer,50,Drama,8,2,Suspicious Minds,5
+170,The Lincoln Lawyer,45,Drama,7.8,2,Withdrawal,6
+171,The Lincoln Lawyer,47,Drama,7.9,2,Cui Bono,7
+172,The Lincoln Lawyer,43,Drama,7.9,2,Covenants and Stipulations,8
+173,The Lincoln Lawyer,53,Drama,8.1,2,The Fifth Witness,9
+174,The Lincoln Lawyer,47,Drama,8,2,Bury Your Past,10
+175,The Lincoln Lawyer,52,Drama,7.8,3,La Culebra,1
+176,The Lincoln Lawyer,53,Drama,7.6,3,Special Circumstances,2
+177,The Lincoln Lawyer,54,Drama,7.6,3,Strange Bedfellows,3
+178,The Lincoln Lawyer,48,Drama,7.6,3,Rearview Blind Spots,4
+179,The Lincoln Lawyer,54,Drama,8,3,What Happens in Victorville,5
+180,The Lincoln Lawyer,44,Drama,7.9,3,Man on Fire,6
+181,The Lincoln Lawyer,51,Drama,7.8,3,Relevance,7
+182,The Lincoln Lawyer,45,Drama,7.9,3,Mystery Man,8
+183,The Lincoln Lawyer,50,Drama,8,3,Ghosts,9
+184,The Lincoln Lawyer,57,Drama,8,3,The Gods of Guilt,10
+185,The Lincoln Lawyer,51,Drama,8.1,4,7211956,1
+186,The Lincoln Lawyer,51,Drama,8.2,4,Baja,2
+187,The Lincoln Lawyer,47,Drama,8.4,4,Forty Hours,3
+188,The Lincoln Lawyer,52,Drama,8.6,4,Bleeding the Beast,4
+189,The Lincoln Lawyer,47,Drama,8.4,4,You're the One That I Want,5
+190,The Lincoln Lawyer,51,Drama,8.5,4,50/50,6
+191,The Lincoln Lawyer,52,Drama,8.4,4,Honor Among Thieves,7
+192,The Lincoln Lawyer,53,Drama,8.7,4,Confirmation Bias,8
+193,The Lincoln Lawyer,55,Drama,8.5,4,October Surprise,9
+194,The Lincoln Lawyer,43,Drama,8.7,4,The Law of Innocence,10
+195,How I Met Your Father,24,Sitcom,6.3,1,Pilot,1
+196,How I Met Your Father,23,Sitcom,6.1,1,FOMO,2
+197,How I Met Your Father,23,Sitcom,6.6,1,The Fixer,3
+198,How I Met Your Father,24,Sitcom,6.5,1,Dirrty Thirty,4
+199,How I Met Your Father,22,Sitcom,6.4,1,The Good Mom,5
+200,How I Met Your Father,23,Sitcom,6.7,1,Stacey,6
+201,How I Met Your Father,22,Sitcom,6.2,1,Rivka Rebel,7
+202,How I Met Your Father,24,Sitcom,6.8,1,The Perfect Shot,8
+203,How I Met Your Father,23,Sitcom,7,1,Jay Street,9
+204,How I Met Your Father,25,Sitcom,8.1,1,Timing Is Everything,10
+205,How I Met Your Father,24,Sitcom,6.9,2,Cool and Chill,1
+206,How I Met Your Father,23,Sitcom,6.7,2,Midwife Crisis,2
+207,How I Met Your Father,23,Sitcom,6.8,2,The Reset Button,3
+208,How I Met Your Father,22,Sitcom,6.6,2,Pathetic Deirdre,4
+209,How I Met Your Father,24,Sitcom,7,2,Ride or Die,5
+210,How I Met Your Father,23,Sitcom,6.9,2,Universal Therapy,6
+211,How I Met Your Father,25,Sitcom,7.2,2,"A Terrible, Horrible, No Good, Very Bad Valentine's Day",7
+212,How I Met Your Father,23,Sitcom,7,2,Rewardishment,8
+213,How I Met Your Father,22,Sitcom,6.8,2,The Welcome Protocol,9
+214,How I Met Your Father,24,Sitcom,7.3,2,I'm His Swish,10
+215,How I Met Your Father,25,Sitcom,8.1,2,Daddy,11
+216,How I Met Your Father,23,Sitcom,7.1,2,Not a Mamma Mia,12
+217,How I Met Your Father,24,Sitcom,7.2,2,Family Business,13
+218,How I Met Your Father,25,Sitcom,8.1,2,Disengagement Party,14
+219,How I Met Your Father,23,Sitcom,7,2,Working Girls,15
+220,How I Met Your Father,22,Sitcom,6.9,2,The Jersey Connection,16
+221,How I Met Your Father,24,Sitcom,7.1,2,Out of Sync,17
+222,How I Met Your Father,23,Sitcom,7,2,Parent Trap,18
+223,How I Met Your Father,24,Sitcom,7.2,2,Shady Parker,19
+224,How I Met Your Father,25,Sitcom,7.6,2,"Okay Fine, It's a Hurricane",20
+225,The Idol,55,Drama,5.3,1,Pop Tarts & Rat Tales,1
+226,The Idol,52,Drama,4.9,1,Double Fantasy,2
+227,The Idol,46,Drama,4.5,1,Daybreak,3
+228,The Idol,57,Drama,4.7,1,Stars Belong to the World,4
+229,The Idol,62,Drama,4.1,1,Jocelyn Forever,5
+230,Emily in Paris,29,Drama,6.9,1,Emily in Paris,1
+231,Emily in Paris,26,Drama,7.1,1,Masculin Féminin,2
+232,Emily in Paris,26,Drama,7.2,1,Sexy or Sexist,3
+233,Emily in Paris,27,Drama,7.5,1,A Kiss Is Just a Kiss,4
+234,Emily in Paris,28,Drama,7.3,1,Faux Amis,5
+235,Emily in Paris,30,Drama,7.1,1,Ringarde,6
+236,Emily in Paris,28,Drama,7.2,1,French Ending,7
+237,Emily in Paris,29,Drama,7.5,1,Family Affair,8
+238,Emily in Paris,29,Drama,7.1,1,An American Auction in Paris,9
+239,Emily in Paris,35,Drama,7.5,1,Cancel Couture,10
+240,Emily in Paris,27,Drama,6.8,2,Voulez-vous coucher avec moi?,1
+241,Emily in Paris,30,Drama,6.7,2,Do You Know the Way to St. Tropez,2
+242,Emily in Paris,28,Drama,7.2,2,Bon anniversaire!,3
+243,Emily in Paris,32,Drama,6.6,2,Jules and Em,4
+244,Emily in Paris,31,Drama,6.9,2,An Englishman in Paris,5
+245,Emily in Paris,29,Drama,6.9,2,Boiling Point,6
+246,Emily in Paris,31,Drama,7,2,"The Cook, the Thief, Her Ghost and His Lover",7
+247,Emily in Paris,29,Drama,7.1,2,Champagne Problems,8
+248,Emily in Paris,30,Drama,7,2,Scents and Sensibility,9
+249,Emily in Paris,38,Drama,7.5,2,French Revolution,10
+250,Emily in Paris,35,Drama,6.8,3,I Have Two Lovers,1
+251,Emily in Paris,32,Drama,6.8,3,What's It All About...,2
+252,Emily in Paris,30,Drama,6.8,3,Coo D'état,3
+253,Emily in Paris,33,Drama,7,3,"Live from Paris, It's Emily Cooper",4
+254,Emily in Paris,31,Drama,7.2,3,Ooo La La Liste,5
+255,Emily in Paris,36,Drama,7.2,3,Ex-en-Provence,6
+256,Emily in Paris,34,Drama,7,3,How to Lose a Designer in 10 Days,7
+257,Emily in Paris,35,Drama,7,3,Fashion Victim,8
+258,Emily in Paris,34,Drama,7.1,3,Love Is in the Air,9
+259,Emily in Paris,38,Drama,7.4,3,Charade,10
+260,Emily in Paris,33,Drama,7.2,4,Break Point,1
+261,Emily in Paris,35,Drama,7.1,4,Love on the Run,2
+262,Emily in Paris,32,Drama,7.5,4,Masquerade,3
+263,Emily in Paris,34,Drama,7.1,4,The Grey Area,4
+264,Emily in Paris,38,Drama,7.2,4,Trompe l'oeil,5
+265,Emily in Paris,45,Drama,7.3,4,Last Christmas,6
+266,Emily in Paris,38,Drama,7.1,4,Lost in Translation,7
+267,Emily in Paris,35,Drama,7.2,4,Back on the Crazy Horse,8
+268,Emily in Paris,36,Drama,7.4,4,Roman Holiday,9
+269,Emily in Paris,46,Drama,7.7,4,All Roads Lead to Rome,10
+270,Emily in Paris,34,Drama,6.8,5,La Dolce Emily,1
+271,Emily in Paris,34,Drama,6.9,5,Got to Be Real,2
+272,Emily in Paris,35,Drama,7,5,Intimissimi Issues,3
+273,Emily in Paris,38,Drama,6.8,5,Rome Has Fallen,4
+274,Emily in Paris,34,Drama,7.1,5,Bonjour Paris!,5
+275,Emily in Paris,37,Drama,7,5,The One Where Emily Goes to the Embassy,6
+276,Emily in Paris,36,Drama,7.2,5,Second Chances,7
+277,Emily in Paris,34,Drama,7.1,5,Fashion Statement,8
+278,Emily in Paris,35,Drama,7.3,5,La Belle Époque,9
+279,Emily in Paris,40,Drama,7.4,5,"Veni, Vidi, Venezia",10
+280,911,44,"Drama",7.3,1,Pilot,1
+281,911,43,"Drama",6.9,1,Let Go,2
+282,911,43,"Drama",7.5,1,Next of Kin,3
+283,911,43,"Drama",7.4,1,Worst Day Ever,4
+284,911,43,"Drama",7.4,1,Point of Origin,5
+285,911,43,"Drama",7.4,1,Heartbreaker,6
+286,911,43,"Drama",7.5,1,Full Moon (Creepy AF),7
+287,911,43,"Drama",7.7,1,Karma's a Bitch,8
+288,911,43,"Drama",7.4,1,Trapped,9
+289,911,44,"Drama",7.8,1,A Whole New You,10
+290,911,44,"Drama",7.7,2,Under Pressure,1
+291,911,44,"Drama",8.3,2,7.1,2
+292,911,43,"Drama",8,2,Help Is Not Coming,3
+293,911,43,"Drama",7.4,2,Stuck,4
+294,911,43,"Drama",7.6,2,Awful People,5
+295,911,43,"Drama",7.9,2,Dosed,6
+296,911,43,"Drama",7.4,2,Haunted,7
+297,911,43,"Drama",7.8,2,"Buck, Actually",8
+298,911,43,"Drama",7.4,2,Hen Begins,9
+299,911,43,"Drama",7.9,2,Merry Ex-Mas,10
+300,911,43,"Drama",8.1,2,New Beginnings,11
+301,911,43,"Drama",7.8,2,Chimney Begins,12
+302,911,44,"Drama",8.3,2,Fight or Flight,13
+303,911,43,"Drama",8,2,Broken,14
+304,911,43,"Drama",7.7,2,Ocean's 9-1-1,15
+305,911,43,"Drama",7.8,2,Bobby Begins Again,16
+306,911,43,"Drama",8.1,2,Careful What You Wish For,17
+307,911,44,"Drama",8,2,This Life We Choose,18
+308,911,44,"Drama",8.1,3,Kids Today,1
+309,911,45,"Drama",8.8,3,Sink or Swim,2
+310,911,45,"Drama",8.7,3,The Searchers,3
+311,911,43,"Drama",7.3,3,Triggers,4
+312,911,43,"Drama",7.7,3,Rage,5
+313,911,43,"Drama",7.8,3,Monsters,6
+314,911,43,"Drama",7.7,3,Athena Begins,7
+315,911,43,"Drama",7.6,3,Malfunction,8
+316,911,43,"Drama",7.8,3,Fallout,9
+317,911,43,"Drama",7.8,3,Christmas Spirit,10
+318,911,43,"Drama",7.5,3,Seize the Day,11
+319,911,43,"Drama",7.4,3,Fools,12
+320,911,43,"Drama",7.8,3,Pinned,13
+321,911,44,"Drama",8.3,3,The Taking of Dispatch 9-1-1,14
+322,911,43,"Drama",7.6,3,Eddie Begins,15
+323,911,43,"Drama",7.8,3,The One That Got Away,16
+324,911,43,"Drama",7.9,3,Powerless,17
+325,911,44,"Drama",7.9,3,What's Next?,18
+326,911,44,"Drama",7.7,4,The New Abnormal,1
+327,911,43,"Drama",7.5,4,Alone Together,2
+328,911,43,"Drama",7.3,4,Future Tense,3
+329,911,43,"Drama",7.5,4,"9-1-1, What's Your Grievance?",4
+330,911,43,"Drama",7.7,4,Buck Begins,5
+331,911,43,"Drama",7.5,4,Jinx,6
+332,911,43,"Drama",7.5,4,There Goes the Neighborhood,7
+333,911,43,"Drama",7.2,4,Breaking Point,8
+334,911,43,"Drama",7.9,4,Blindsided,9
+335,911,43,"Drama",7.6,4,Parenthood,10
+336,911,43,"Drama",7.6,4,First Responders,11
+337,911,43,"Drama",7.2,4,Treasure Hunt,12
+338,911,43,"Drama",7.6,4,Suspicion,13
+339,911,44,"Drama",8,4,Survivors,14
+340,911,44,"Drama",7.5,5,Panic,1
+341,911,43,"Drama",7.5,5,Desperate Times,2
+342,911,43,"Drama",7.3,5,Desperate Measures,3
+343,911,43,"Drama",7.1,5,Home and Away,4
+344,911,43,"Drama",7.2,5,Peer Pressure,5
+345,911,43,"Drama",7.4,5,Brawl in Cell Block 9-1-1,6
+346,911,43,"Drama",7.3,5,Ghost Stories,7
+347,911,43,"Drama",7.2,5,Defend in Place,8
+348,911,43,"Drama",7.3,5,Past Is Prologue,9
+349,911,43,"Drama",7.1,5,Wrapped in Red,10
+350,911,43,"Drama",7.1,5,Outside Looking In,11
+351,911,43,"Drama",7.5,5,Boston,12
+352,911,43,"Drama",7.3,5,Fear-o-Phobia,13
+353,911,43,"Drama",7.2,5,Dumb Luck,14
+354,911,43,"Drama",7.2,5,FOMO,15
+355,911,43,"Drama",8,5,May Day,16
+356,911,43,"Drama",8,5,Hero Complex,17
+357,911,44,"Drama",7.6,5,Starting Over,18
+358,911,44,"Drama",7.7,6,Let the Games Begin,1
+359,911,43,"Drama",7.2,6,Crash and Learn,2
+360,911,43,"Drama",7.3,6,The Devil You Know,3
+361,911,43,"Drama",7.1,6,Animal Instincts,4
+362,911,43,"Drama",7,6,Home Invasion,5
+363,911,43,"Drama",7.7,6,Tomorrow,6
+364,911,43,"Drama",7.8,6,Cursed,7
+365,911,43,"Drama",7.4,6,What's Your Fantasy?,8
+366,911,43,"Drama",7.6,6,Red Flag,9
+367,911,44,"Drama",8.4,6,In a Flash,10
+368,911,43,"Drama",7.4,6,In Another Life,11
+369,911,43,"Drama",8.2,6,Recovery,12
+370,911,43,"Drama",7.5,6,Mixed Feelings,13
+371,911,43,"Drama",8,6,Performance Anxiety,14
+372,911,43,"Drama",8.1,6,Death and Taxes,15
+373,911,43,"Drama",7.7,6,Lost & Found,16
+374,911,43,"Drama",8.1,6,Love Is in the Air,17
+375,911,44,"Drama",8.5,6,Pay It Forward,18
+376,911,44,"Drama",8.1,7,Abandon Ships,1
+377,911,45,"Drama",8.4,7,Rock the Boat,2
+378,911,45,"Drama",8.5,7,Capsized,3
+379,911,43,"Drama",7.4,7,"Buck, Bothered and Bewildered",4
+380,911,43,"Drama",7.7,7,You Don't Know Me,5
+381,911,43,"Drama",7.7,7,There Goes the Groom,6
+382,911,43,"Drama",7.8,7,Ghost of a Second Chance,7
+383,911,43,"Drama",8.1,7,Step Nine,8
+384,911,44,"Drama",8.3,7,"Ashes, Ashes",9
+385,911,44,"Drama",8.3,7,All Fall Down,10
+386,911,44,"Drama",8.4,8,Buzzkill,1
+387,911,45,"Drama",8.4,8,When the Boeing Gets Tough...,2
+388,911,45,"Drama",8.6,8,Final Approach,3
+389,911,43,"Drama",7.7,8,No Place Like Home,4
+390,911,43,"Drama",7.6,8,Masks,5
+391,911,43,"Drama",7.7,8,Confessions,6
+392,911,43,"Drama",7.7,8,Hotshots,7
+393,911,43,"Drama",7.7,8,Wannabes,8
+394,911,43,"Drama",7.6,8,Sob Stories,9
+395,911,43,"Drama",7.8,8,Voices,10
+396,911,43,"Drama",7.2,8,Holy Mother of God,11
+397,911,43,"Drama",7.4,8,Disconnected,12
+398,911,43,"Drama",7.8,8,Invisible,13
+399,911,43,"Drama",7.5,8,Sick Day,14
+400,911,43,"Drama",8.2,8,Lab Rats,15
+401,911,44,"Drama",8.3,8,The Last Alarm,16
+402,911,43,"Drama",8,8,Don't Drink the Water,17
+403,911,45,"Drama",9.1,8,Seismic Shifts,18
+404,911,44,"Drama",7.6,9,Eat the Rich,1
+405,911,43,"Drama",7.1,9,Spiraling,2
+406,911,43,"Drama",7.1,9,The Sky Is Falling,3
+407,911,43,"Drama",7.6,9,Reentry,4
+408,911,43,"Drama",7.6,9,Día de los Muertos,5
+409,911,43,"Drama",8,9,Family History,6
+410,911,43,"Drama",7.7,9,Secrets,7
+411,911,43,"Drama",7.8,9,War,8
+412,911,43,"Drama",7.2,9,Fighting Back,9
+413,911,43,"Drama",7.5,9,Handle with Care,10
+414,911,43,"Drama",8,9,"Going Once, Going Twice",11
+415,911,43,"Drama",7.5,9,Dads and Cads,12
+416,911,43,"Drama",7.5,9,Mother's Boy,13
+417,911,43,"Drama",7.6,9,D.I.Y.,14
+418,911,44,"Drama",8.4,9,Pick Your Poison,15
+419,911,43,"Drama",7.9,9,Where There's Smoke,16
+420,911,44,"Drama",8.3,9,I Got You Babe,17
+421,911,44,"Drama",7.9,9,Hearts and Flowers,18
+422,Hannah Montana,23,"Comedy",7.1,1,"Lilly, Do You Want to Know a Secret?",1
+423,Hannah Montana,22,"Comedy",6.9,1,Miley Get Your Gum,2
+424,Hannah Montana,22,"Comedy",6.7,1,She's a Supersneak,3
+425,Hannah Montana,23,"Comedy",6.5,1,I Can't Make You Love Hannah if You Don't,4
+426,Hannah Montana,22,"Comedy",6.4,1,It's My Party and I'll Lie if I Want To,5
+427,Hannah Montana,22,"Comedy",6.6,1,Grandmas Don't Let Your Babies Grow Up to Play Favorites,6
+428,Hannah Montana,23,"Comedy",6.8,1,It's a Mannequin's World,7
+429,Hannah Montana,22,"Comedy",6.7,1,Mascot Love,8
+430,Hannah Montana,22,"Comedy",6.8,1,"Ooo, Ooo, Itchy Woman",9
+431,Hannah Montana,23,"Comedy",6.9,1,"O Say, Can You Remember the Words?",10
+432,Hannah Montana,22,"Comedy",6.5,1,Oops! I Meddled Again!,11
+433,Hannah Montana,23,"Comedy",7.2,1,On the Road Again?,12
+434,Hannah Montana,22,"Comedy",6.7,1,"You're So Vain, You Probably Think This Zit is About You",13
+435,Hannah Montana,23,"Comedy",6.6,1,New Kid in School,14
+436,Hannah Montana,22,"Comedy",6.8,1,More Than a Zombie to Me,15
+437,Hannah Montana,23,"Comedy",7,1,"Good Golly, Miss Dolly",16
+438,Hannah Montana,23,"Comedy",7.3,1,Torn Between Two Hannahs,17
+439,Hannah Montana,22,"Comedy",6.8,1,People Who Use People,18
+440,Hannah Montana,22,"Comedy",6.7,1,"Money for Nothing, Guilt for Free",19
+441,Hannah Montana,23,"Comedy",6.9,1,Debt It Be,20
+442,Hannah Montana,22,"Comedy",7,1,My Boyfriend's Jackson and There's Gonna Be Trouble,21
+443,Hannah Montana,22,"Comedy",6.8,1,"We Are Family, Now Get Me Some Water!",22
+444,Hannah Montana,23,"Comedy",6.6,1,Schooly Bully,23
+445,Hannah Montana,22,"Comedy",6.9,1,The Idol Side of Me,24
+446,Hannah Montana,22,"Comedy",6.7,1,Smells Like Teen Sellout,25
+447,Hannah Montana,23,"Comedy",6.5,1,Bad Moose Rising,26
+448,Hannah Montana,22,"Comedy",6.8,2,Me and Rico Down by the Schoolyard,1
+449,Hannah Montana,22,"Comedy",6.7,2,Cuffs Will Keep Us Together,2
+450,Hannah Montana,23,"Comedy",6.9,2,You Are So Sue-able to Me,3
+451,Hannah Montana,22,"Comedy",6.8,2,"Get Down, Study-udy-udy",4
+452,Hannah Montana,22,"Comedy",6.7,2,"I Am Hannah, Hear Me Croak",5
+453,Hannah Montana,23,"Comedy",6.8,2,You Gotta Not Fight for Your Right to Party,6
+454,Hannah Montana,22,"Comedy",6.9,2,My Best Friend's Boyfriend,7
+455,Hannah Montana,22,"Comedy",6.6,2,Take This Job and Love It,8
+456,Hannah Montana,23,"Comedy",7.2,2,Achy Jakey Heart (Part 1),9
+457,Hannah Montana,23,"Comedy",7.3,2,Achy Jakey Heart (Part 2),10
+458,Hannah Montana,22,"Comedy",6.5,2,Sleepwalk This Way,11
+459,Hannah Montana,23,"Comedy",7,2,When You Wish You Were the Star,12
+460,Hannah Montana,22,"Comedy",6.9,2,I Want You to Want Me... to Go to Florida,13
+461,Hannah Montana,22,"Comedy",6.8,2,Everybody Was Best-Friend Fighting,14
+462,Hannah Montana,23,"Comedy",6.7,2,Song Sung Bad,15
+463,Hannah Montana,23,"Comedy",7.7,2,Me and Mr. Jonas and Mr. Jonas and Mr. Jonas,16
+464,Hannah Montana,22,"Comedy",6.8,2,Don't Stop 'Til You Get the Phone,17
+465,Hannah Montana,22,"Comedy",7,2,That's What Friends Are For?,18
+466,Hannah Montana,23,"Comedy",6.9,2,Lilly's Mom Has Got It Goin' On,19
+467,Hannah Montana,22,"Comedy",6.7,2,I Will Always Loathe You,20
+468,Hannah Montana,22,"Comedy",6.6,2,Bye Bye Ball,21
+469,Hannah Montana,23,"Comedy",6.5,2,(We're So Sorry) Uncle Earl,22
+470,Hannah Montana,22,"Comedy",7.1,2,The Way We Almost Weren't,23
+471,Hannah Montana,22,"Comedy",6.8,2,You Didn't Say It Was Your Birthday,24
+472,Hannah Montana,23,"Comedy",7,2,Hannah in the Streets with Diamonds,25
+473,Hannah Montana,22,"Comedy",6.9,2,Yet Another Side of Me,26
+474,Hannah Montana,22,"Comedy",6.6,2,The Test of My Love,27
+475,Hannah Montana,23,"Comedy",6.8,2,Joannie B. Goode,28
+476,Hannah Montana,22,"Comedy",7.1,2,We're All on This Date Together,29
+477,Hannah Montana,22,"Comedy",6.8,3,"He Ain't a Hottie, He's My Brother",1
+478,Hannah Montana,22,"Comedy",6.9,3,"Ready, Set, Don't Drive",2
+479,Hannah Montana,23,"Comedy",6.7,3,Don't Go Breaking My Tooth,3
+480,Hannah Montana,22,"Comedy",6.6,3,You Never Give Me My Money,4
+481,Hannah Montana,22,"Comedy",6.5,3,Killing Me Softly with His Height,5
+482,Hannah Montana,23,"Comedy",6.8,3,"Would I Lie to You, Lilly?",6
+483,Hannah Montana,22,"Comedy",6.9,3,You Gotta Lose This Job,7
+484,Hannah Montana,22,"Comedy",6.6,3,Welcome to the Bungle,8
+485,Hannah Montana,23,"Comedy",6.7,3,Papa's Got a Brand New Friend,9
+486,Hannah Montana,22,"Comedy",6.8,3,Cheat It,10
+487,Hannah Montana,22,"Comedy",6.9,3,Knock Knock Knockin' on Jackson's Head,11
+488,Hannah Montana,23,"Comedy",6.4,3,You Give Lunch a Bad Name,12
+489,Hannah Montana,22,"Comedy",6.7,3,What I Don't Like About You,13
+490,Hannah Montana,22,"Comedy",6.9,3,Promma Mia,14
+491,Hannah Montana,23,"Comedy",6.5,3,"Once, Twice, Three Times Afraidy",15
+492,Hannah Montana,22,"Comedy",7.1,3,Jake... Another Little Piece of My Heart,16
+493,Hannah Montana,22,"Comedy",6.7,3,Miley Hurt the Feelings of the Radio Star,17
+494,Hannah Montana,46,"Comedy",8,3,He Could Be the One,18
+495,Hannah Montana,23,"Comedy",7.4,3,Super(stitious) Girl,19
+496,Hannah Montana,22,"Comedy",6.8,3,"I Honestly Love You (No, Not You)",20
+497,Hannah Montana,22,"Comedy",6.6,3,For (Give) a Little Bit,21
+498,Hannah Montana,23,"Comedy",6.7,3,B-B-B-Bad to the Chrome,22
+499,Hannah Montana,22,"Comedy",7,3,Uptight (Oliver's Alright),23
+500,Hannah Montana,22,"Comedy",6.9,3,Judge Me Tender,24
+501,Hannah Montana,23,"Comedy",6.7,3,Can't Get Home to You Girl,25
+502,Hannah Montana,22,"Comedy",6.6,3,Come Fail Away,26
+503,Hannah Montana,22,"Comedy",6.8,3,Got to Get Her Out of My House,27
+504,Hannah Montana,23,"Comedy",7,3,The Wheel Near My Bed (Keeps on Turnin'),28
+505,Hannah Montana,22,"Comedy",7.3,3,Miley Says Goodbye? Part 1,29
+506,Hannah Montana,23,"Comedy",7.5,3,Miley Says Goodbye? Part 2,30
+507,Hannah Montana,23,"Comedy",7,4,Sweet Home Hannah Montana,1
+508,Hannah Montana,22,"Comedy",6.9,4,Hannah Montana to the Principal's Office,2
+509,Hannah Montana,22,"Comedy",6.7,4,California Screamin',3
+510,Hannah Montana,23,"Comedy",7.1,4,"De-Do-Do-Do, Da-Don't-Don't-Don't Tell My Secret!",4
+511,Hannah Montana,22,"Comedy",7.2,4,It's the End of the Jake as We Know It,5
+512,Hannah Montana,23,"Comedy",7.4,4,Been Here All Along,6
+513,Hannah Montana,22,"Comedy",7.1,4,Love That Lets Go,7
+514,Hannah Montana,22,"Comedy",6.8,4,Hannah's Gonna Get This,8
+515,Hannah Montana,46,"Comedy",8.4,4,I'll Always Remember You,9
+516,Hannah Montana,23,"Comedy",7.2,4,Can You See the Real Me?,10
+517,Hannah Montana,22,"Comedy",7,4,Kiss It All Goodbye,11
+518,Hannah Montana,22,"Comedy",6.9,4,"I Am Mamaw, Hear Me Roar!",12
+519,Hannah Montana,46,"Comedy",8.3,4,Wherever I Go,13

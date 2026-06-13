@@ -1,0 +1,12 @@
+ID,Name,Length,Genre,Rating,Director
+1,Avengers Endgame,181,"Action, SciFi",8.4,"Anthony Russo, Joe Russo"
+2,The Godfather,175,"Crime, Drama",9.2,Francis Ford Coppola
+3,Casablanca,102,"Drama, Romance, War",8.5,Michael Curtiz
+4,Citizen Kane,119,"Drama, Mystery",8.3,Orson Welles
+5,Psycho,109,"Horror, Mystery, Thriller",8.5,Alfred Hitchcock
+6,2001: A Space Odyssey,139,"Adventure, Sci-Fi",8.3,Stanley Kubrick
+7,Gone with the Wind,221,"Drama, Romance, War",8.2,Victor Fleming
+8,The Wizard of Oz,102,"Adventure, Family, Fantasy",8.1,Victor Fleming
+9,Singin’ in the Rain,103,"Comedy, Musical, Romance",8.3,"Stanley Donen, Gene Kelly"
+10,Schindler’s List,195,"Biography, Drama, History",9,Steven Spielberg
+11,Star Wars: Episode IV - A New Hope,121,"Action, Adventure, Fantasy",8.6,George Lucas
