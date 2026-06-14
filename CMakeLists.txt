@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 # MinGW toolchain is required — OpenSSL is expected at this path
 set(OPENSSL_ROOT_DIR "C:/msys64/mingw64" CACHE PATH "MinGW OpenSSL root")
 
-include_directories(${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/assets)
+include_directories(${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/assets ${CMAKE_SOURCE_DIR}/pageStructure)
 
 find_package(OpenSSL REQUIRED)
 
@@ -14,6 +14,7 @@ add_compile_definitions(HAS_OPENSSL)
 
 file(GLOB_RECURSE LIB_SOURCES
 	lib/*.cpp
+	pageStructure/*.cpp
 )
 
 add_library(SituacionProblemaLib ${LIB_SOURCES})
