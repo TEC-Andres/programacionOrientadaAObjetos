@@ -6,10 +6,11 @@
 #include <vector>
 #include "params.h"
 
-#define UI_KEY_UP    0x100
-#define UI_KEY_DOWN  0x101
-#define UI_KEY_LEFT  0x102
-#define UI_KEY_RIGHT 0x103
+#define UI_KEY_UP      0x100
+#define UI_KEY_DOWN    0x101
+#define UI_KEY_LEFT    0x102
+#define UI_KEY_RIGHT   0x103
+#define SHIFT_TAB      0x104
 
 namespace ui {
 
@@ -91,6 +92,13 @@ public:
     void setDisplacementX(float pct) { displacementX_ = pct; }
     float displacementY() const { return displacementY_; }
     void setDisplacementY(float pct) { displacementY_ = pct; }
+    virtual bool wantsCursor() const { return false; }
+    virtual int cursorX() const { return 0; }
+    virtual int cursorY() const { return 0; }
+    virtual bool fillRegion() const { return false; }
+    virtual void setFillRegion(bool) {}
+    virtual void setWidth(int) {}
+    virtual void setHeight(int) {}
 
 protected:
     Align align_ = Align::Left;
@@ -119,6 +127,9 @@ public:
     static int getConsoleHeight();
     static void enableVT();
 
+    bool fillRegion() const override { return fillRegion_; }
+    void setFillRegion(bool f) override { fillRegion_ = f; }
+
 protected:
     void apply_param(Param<int, width_tag> p) { width_ = p.value; }
     void apply_param(Param<int, height_tag> p) { height_ = p.value; }
@@ -129,6 +140,7 @@ protected:
     RenderHelper render_;
     int width_;
     int height_;
+    bool fillRegion_ = false;
 };
 
 } // namespace ui
