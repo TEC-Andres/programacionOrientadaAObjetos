@@ -92,7 +92,7 @@ The data is going to be shown in a CLI environment; styled with ANSI escape code
 
 ## Build 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 ```
 
