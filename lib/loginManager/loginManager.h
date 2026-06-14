@@ -31,6 +31,10 @@ public:
 
     bool is_authenticated() const;
     std::string get_current_user() const;
+
+    // Auxiliary key-value storage in .env (co-exists with user records)
+    std::string load_env_value(const std::string& key);
+    bool save_env_value(const std::string& key, const std::string& value);
 };
 
 #endif // LOGIN_MANAGER_H

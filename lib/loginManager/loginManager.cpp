@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <random>
+#include <vector>
 
 LoginManager::LoginManager() : current_logged_in_user(""), resolved_env_path("") {
     load_users_from_env();
@@ -90,9 +91,38 @@ bool LoginManager::load_users_from_env() {
  * Loops through all users, writing them to disk using the standard format.
  */
 bool LoginManager::save_users_to_env() {
+    // First, read existing file and collect non-user lines (comments,
+    // blank lines, and auxiliary KEY=VALUE entries without a colon)
     std::string active_path = get_env_path();
+    std::vector<std::string> preamble;
+    {
+        std::ifstream inFile(active_path);
+        if (inFile.is_open()) {
+            std::string line;
+            while (std::getline(inFile, line)) {
+                bool isUserLine = false;
+                std::string::size_type delim = line.find('=');
+                if (delim != std::string::npos) {
+                    std::string payload = line.substr(delim + 1);
+                    if (payload.find(':') != std::string::npos) {
+                        isUserLine = true;
+                    }
+                }
+                if (!isUserLine) {
+                    preamble.push_back(line);
+                }
+            }
+            inFile.close();
+        }
+    }
+
+    // Rewrite the file: preamble first, then current user records
     std::ofstream file(active_path);
     if (!file.is_open()) return false;
+
+    for (const auto& line : preamble) {
+        file << line << "\n";
+    }
 
     for (const auto& pair : user_database) {
         file << pair.first << "=" << pair.second.password_hash << ":" << pair.second.salt << "\n";
@@ -138,10 +168,8 @@ bool LoginManager::login_user(const std::string& username, const std::string& pa
 
     if (attempt_hash == record.password_hash) {
         current_logged_in_user = username;
-        std::cout << "\n Login Success! Welcome back, " << username << ".\n";
         return true;
     } else {
-        std::cout << "\n Login Failed: Incorrect username or password.\n";
         return false;
     }
 }
@@ -156,4 +184,56 @@ bool LoginManager::is_authenticated() const {
 
 std::string LoginManager::get_current_user() const {
     return current_logged_in_user;
+}
+
+std::string LoginManager::load_env_value(const std::string& key) {
+    std::string active_path = get_env_path();
+    std::ifstream file(active_path);
+    if (!file.is_open()) return "";
+
+    std::string prefix = key + "=";
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.compare(0, prefix.size(), prefix) == 0) {
+            file.close();
+            return line.substr(prefix.size());
+        }
+    }
+    file.close();
+    return "";
+}
+
+bool LoginManager::save_env_value(const std::string& key, const std::string& value) {
+    std::string active_path = get_env_path();
+    std::string prefix = key + "=";
+    std::vector<std::string> lines;
+    bool found = false;
+
+    {
+        std::ifstream file(active_path);
+        if (file.is_open()) {
+            std::string line;
+            while (std::getline(file, line)) {
+                if (!found && line.compare(0, prefix.size(), prefix) == 0) {
+                    lines.push_back(prefix + value);
+                    found = true;
+                } else {
+                    lines.push_back(line);
+                }
+            }
+            file.close();
+        }
+    }
+
+    if (!found) {
+        lines.push_back(prefix + value);
+    }
+
+    std::ofstream file(active_path);
+    if (!file.is_open()) return false;
+    for (const auto& line : lines) {
+        file << line << "\n";
+    }
+    file.close();
+    return true;
 }

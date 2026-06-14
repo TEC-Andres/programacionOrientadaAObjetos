@@ -248,6 +248,15 @@ void Partition::render(std::ostream &out)
             int compH = comp->height();
             if (compW < 6) compW = 6;
 
+            if (comp->fillRegion()) {
+                compW = reg.w_;
+                int fillH = reg.h_ - 2;
+                compH = fillH > 2 ? fillH : 2;
+                if (compW < 6) compW = 6;
+                comp->setWidth(compW);
+                comp->setHeight(compH);
+            }
+
             ObjectRenderer *objRend = dynamic_cast<ObjectRenderer*>(comp);
             if ((compW > reg.w_ || compH > reg.h_) && objRend && objRend->resizable()) {
                 objRend->fitToBounds(reg.w_, reg.h_);
@@ -287,11 +296,35 @@ void Partition::render(std::ostream &out)
                     y += item.compH + GAP;
                 }
             } else {
-                int y = reg.h_;
-                for (auto it = bands[bi].rbegin(); it != bands[bi].rend(); ++it) {
-                    y -= it->compH;
-                    it->cy = y;
-                    y -= GAP;
+                // Bottom band: horizontal stacking if multiple items fit, else vertical
+                if (bands[bi].size() > 1) {
+                    int totalW = 0;
+                    for (auto &item : bands[bi]) totalW += item.compW + GAP;
+                    if (!bands[bi].empty()) totalW -= GAP;
+                    if (totalW <= reg.w_) {
+                        // Horizontal layout: side by side
+                        int x = (reg.w_ - totalW) / 2;
+                        for (auto &item : bands[bi]) {
+                            item.cx = x;
+                            item.cy = reg.h_ - item.compH;
+                            x += item.compW + GAP;
+                        }
+                    } else {
+                        // Fallback: vertical stacking
+                        int y = reg.h_;
+                        for (auto it = bands[bi].rbegin(); it != bands[bi].rend(); ++it) {
+                            y -= it->compH;
+                            it->cy = y;
+                            y -= GAP;
+                        }
+                    }
+                } else {
+                    int y = reg.h_;
+                    for (auto it = bands[bi].rbegin(); it != bands[bi].rend(); ++it) {
+                        y -= it->compH;
+                        it->cy = y;
+                        y -= GAP;
+                    }
                 }
             }
         }
@@ -325,14 +358,15 @@ void Partition::render(std::ostream &out)
                 cx += reg.x_;
                 cy += reg.y_;
 
-                if (cx < 0) cx = 0;
-                if (cy < 0) cy = 0;
+                // Clamp to region bounds to prevent overlap with neighboring regions
+                cx = std::max(reg.x_, std::min(cx, reg.x_ + reg.w_ - 1));
+                cy = std::max(reg.y_, std::min(cy, reg.y_ + reg.h_ - 1));
 
                 // Render line by line
                 std::string content = item.comp->toString();
                 size_t pos = 0;
                 int lineNum = 0;
-                while (pos < content.size()) {
+                while (pos < content.size() && lineNum < reg.h_) {
                     size_t next = content.find('\n', pos);
                     std::string line = (next == std::string::npos)
                         ? content.substr(pos)
@@ -356,8 +390,27 @@ void Partition::render(std::ostream &out)
                     if (next == std::string::npos) break;
                     pos = next + 1;
                 }
+
+                // Track cursor position for focused component
+                if (item.comp->selected() && item.comp->wantsCursor()) {
+                    cursorScreenX_ = cx + item.comp->cursorX();
+                    cursorScreenY_ = cy + item.comp->cursorY();
+                }
             }
         }
+    }
+
+    // Position cursor for the focused component that wants it
+    if (hasFocus_) {
+        IComponent *fc = focusedComponent();
+        if (fc && fc->wantsCursor()) {
+            out << "\x1b[" << (cursorScreenY_ + 1) << ";" << (cursorScreenX_ + 1) << "H";
+            out << "\x1b[?25h";
+        } else {
+            out << "\x1b[?25l";
+        }
+    } else {
+        out << "\x1b[?25l";
     }
 }
 
@@ -482,11 +535,46 @@ void Partition::moveFocus(int dx, int dy)
                 ? 0 : (regions_[focusRegion_].h_ - bandTotalH[1]) / 2;
             bandY[2] = regions_[focusRegion_].h_ - bandTotalH[2];
         }
+
+        // Check if bottom band has multiple items that fit horizontally
+        bool bottomHorizontal = false;
+        if (!bandItems.empty()) {
+            int bottomCount = 0;
+            int bottomTotalW = 0;
+            for (auto &bi : bandItems) {
+                if (bi.band == 2) {
+                    bottomCount++;
+                    bottomTotalW += bi.cw + GAP;
+                }
+            }
+            if (bottomCount > 1) bottomTotalW -= GAP;
+            if (bottomCount > 1 && bottomTotalW <= regions_[focusRegion_].w_) {
+                bottomHorizontal = true;
+            }
+        }
+
         int nextY[3] = {0, bandY[1], bandY[2]};
+        int nextBX[3] = {0, 0, 0};
+        if (bottomHorizontal) {
+            int bottomTotalW = 0;
+            for (auto &bi : bandItems) {
+                if (bi.band == 2) bottomTotalW += bi.cw + GAP;
+            }
+            if (!bandItems.empty()) bottomTotalW -= GAP;
+            nextBX[2] = (regions_[focusRegion_].w_ - bottomTotalW) / 2;
+        }
         for (auto &bi : bandItems) {
-            int cy = nextY[bi.band];
-            nextY[bi.band] += bi.ch + GAP;
-            items.push_back({bi.idx, bi.cx + bi.cw / 2, cy + bi.ch / 2});
+            int cy, cx;
+            if (bi.band == 2 && bottomHorizontal) {
+                cy = regions_[focusRegion_].h_ - bi.ch;
+                cx = nextBX[2];
+                nextBX[2] += bi.cw + GAP;
+            } else {
+                cy = nextY[bi.band];
+                nextY[bi.band] += bi.ch + GAP;
+                cx = bi.cx;
+            }
+            items.push_back({bi.idx, cx + bi.cw / 2, cy + bi.ch / 2});
         }
     }
 
@@ -553,6 +641,74 @@ void Partition::moveFocus(int dx, int dy)
     if (cur) cur->setSelected(true);
 }
 
+bool Partition::focusNextRegion()
+{
+    if (!hasFocus_) return false;
+    int numRegions = 0;
+    switch (type_) {
+        case OneSide:  numRegions = 1; break;
+        case TwoSideH: numRegions = 2; break;
+        case TwoSideV: numRegions = 2; break;
+        case FourSide: numRegions = 4; break;
+    }
+    if (numRegions <= 1) return false;
+
+    IComponent *cur = focusedComponent();
+    if (cur) cur->setSelected(false);
+
+    int start = (focusRegion_ + 1) % numRegions;
+    for (int ri = 0; ri < numRegions; ++ri) {
+        int r = (start + ri) % numRegions;
+        auto &comps = regions_[r].comps_;
+        for (int ci = 0; ci < (int)comps.size(); ++ci) {
+            if (comps[ci] && comps[ci]->isFocusable()) {
+                focusRegion_ = r;
+                focusComp_ = ci;
+                hasFocus_ = true;
+                comps[ci]->setSelected(true);
+                return true;
+            }
+        }
+    }
+
+    if (cur) cur->setSelected(true);
+    return false;
+}
+
+bool Partition::focusPrevRegion()
+{
+    if (!hasFocus_) return false;
+    int numRegions = 0;
+    switch (type_) {
+        case OneSide:  numRegions = 1; break;
+        case TwoSideH: numRegions = 2; break;
+        case TwoSideV: numRegions = 2; break;
+        case FourSide: numRegions = 4; break;
+    }
+    if (numRegions <= 1) return false;
+
+    IComponent *cur = focusedComponent();
+    if (cur) cur->setSelected(false);
+
+    int start = (focusRegion_ - 1 + numRegions) % numRegions;
+    for (int ri = 0; ri < numRegions; ++ri) {
+        int r = (start - ri + numRegions) % numRegions;
+        auto &comps = regions_[r].comps_;
+        for (int ci = 0; ci < (int)comps.size(); ++ci) {
+            if (comps[ci] && comps[ci]->isFocusable()) {
+                focusRegion_ = r;
+                focusComp_ = ci;
+                hasFocus_ = true;
+                comps[ci]->setSelected(true);
+                return true;
+            }
+        }
+    }
+
+    if (cur) cur->setSelected(true);
+    return false;
+}
+
 bool Partition::handleKey(int key)
 {
     if (!hasFocus_) {
@@ -562,16 +718,21 @@ bool Partition::handleKey(int key)
 
     IComponent *focused = focusedComponent();
 
-    // Directional navigation:
-    //   Up / Down      → move vertically  within region
-    //   Left / Right   → try adjacent region first,
-    //                    fall back to horizontal within-region
-    if (key == UI_KEY_UP) { // Up
-        moveFocus(0, -1);
+    // Tab: cycle focus to next region with focusable components
+    if (key == 9 || key == SHIFT_TAB) {
+        if (key == 9) focusNextRegion();
+        else focusPrevRegion();
         return true;
     }
-    if (key == UI_KEY_DOWN) { // Down
-        moveFocus(0, 1);
+
+    // Directional navigation:
+    //   Up / Down      → let focused component handle first (e.g. DataTable row selection),
+    //                    then fall back to focus movement
+    //   Left / Right   → try adjacent region first,
+    //                    fall back to horizontal within-region
+    if (key == UI_KEY_UP || key == UI_KEY_DOWN) {
+        if (focused && focused->handleKey(key)) return true;
+        moveFocus(0, key == UI_KEY_UP ? -1 : 1);
         return true;
     }
     if (key == UI_KEY_LEFT) { // Left
@@ -583,9 +744,13 @@ bool Partition::handleKey(int key)
         return true;
     }
 
-    // Enter: activate focused
+    // Enter: let the component handle it first (e.g. TerminalArea submits command),
+    // fall back to onActivate for components like Button
     if (key == 13 || key == 10) {
-        if (focused) focused->onActivate();
+        if (focused) {
+            if (focused->handleKey(key)) return true;
+            focused->onActivate();
+        }
         return true;
     }
 
