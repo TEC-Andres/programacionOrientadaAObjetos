@@ -26,6 +26,8 @@ public:
     KeyPair generateKeyPair();
     void loadKeyPair(const std::string& privKeyPath, const std::string& pubKeyPath);
     void saveKeyPair(const std::string& privKeyPath, const std::string& pubKeyPath) const;
+    void setStoredKeyPair(const std::vector<uint8_t>& pubKey,
+                          const std::vector<uint8_t>& privKey);
 
     std::vector<uint8_t> encrypt(const std::vector<uint8_t>& plaintext,
                                  const std::vector<uint8_t>& recipientPublicKey);
@@ -37,6 +39,9 @@ public:
 
     std::string encryptDatabase(const std::string& plaintext);
     std::string decryptDatabase(const std::string& ciphertextHex);
+
+    void encryptDatabaseFile(const std::string& dbPath, const std::string& eccPath);
+    void decryptDatabaseFile(const std::string& eccPath, const std::string& dbPath);
 
     static std::string bytesToHex(const std::vector<uint8_t>& bytes);
     static std::vector<uint8_t> hexToBytes(const std::string& hex);
