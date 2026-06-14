@@ -78,6 +78,23 @@ Thanks to inheritance, child classes do not need to redefine the attributes and 
 ## module description
 this module manages the data storage blueprints, object hierarchy logic, and custom container models used to map multimedia structures in program memory.
 
+the inheritance structure is organized as follows:
+* video is the base class.
+* movie inherits from video.
+* series inherits from video.
+* episodes inherits from series.
+
+## relationship overview
+* a movie is a type of video.
+* a series is a type of video.
+* an episode is a type of series and also a type of video.
+
+## benefits of the structure
+* avoids duplicating common attributes across classes.
+* simplifies maintenance and future updates.
+* keeps related information organized through inheritance.
+* improves code readability and scalability.
+
 ## included files
 * video class (VideoClass.md) - data fields for the generic base class entity.
 * movie class (MovieClass.md) - layout specifications for film items.

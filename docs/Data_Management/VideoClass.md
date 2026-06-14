@@ -33,6 +33,8 @@ this document defines the underlying properties and public interface parameters 
 * genre - type string mapping the categorical grouping label.
 * rating - type uint8_t score tracker tracking overall content quality.
 
-## public interface layout
-* handles base empty constructor setups and fully mapped parameter hooks.
-* exposes clean getter and setter blocks for every isolated private property field.
+## core functionality
+* creates video objects using default or parameterized constructors.
+* provides getter methods to access private data.
+* provides setter methods to update video information safely.
+* serves as the parent class for movie and series objects.
