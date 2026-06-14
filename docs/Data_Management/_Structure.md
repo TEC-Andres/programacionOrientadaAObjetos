@@ -23,7 +23,7 @@ class Video{
     +getGenre() string
     +setGenre(string genre) void
     +getRating() uint8_t
-    +setRating(uint8_t length) void
+    +setRating(uint8_t rating) void
 }
 
 class Movie{
@@ -42,7 +42,7 @@ string title)
     +getSeason() uint32_t
     +setSeason(uint32_t season) void
     +getTitle() string
-    +setTitle() void
+    +setTitle(string title) void
 }
 
 class Episodes{
