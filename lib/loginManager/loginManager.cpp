@@ -168,10 +168,8 @@ bool LoginManager::login_user(const std::string& username, const std::string& pa
 
     if (attempt_hash == record.password_hash) {
         current_logged_in_user = username;
-        std::cout << "\n Login Success! Welcome back, " << username << ".\n";
         return true;
     } else {
-        std::cout << "\n Login Failed: Incorrect username or password.\n";
         return false;
     }
 }
