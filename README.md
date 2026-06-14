@@ -1,6 +1,6 @@
 <h1 align="center">Problem situation - Object Oriented Programming</h1>
 <p align="center">
-    <img src="assets/__README__/loginAlpha.png" width="50%" alt="Login Alpha" />
+    <img src="assets/__README__/loginAlpha.gif" width="100%" alt="Login Alpha" />
 </p>
 
 ## Team members
