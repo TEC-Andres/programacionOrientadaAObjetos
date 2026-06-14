@@ -1,1 +1,4 @@
 # Data Table in Dashboard
+Data table is the primary component for displaying the main data in a tabular format. It allows users to view, sort, and filter the information effectively. The table can be customized with different columns, sorting options, and filtering criteria to provide a tailored experience for each user.
+
+The table can be seen in the top left corner of the dashboard. It provides a clear and organized view of the data, making it easy for users to understand and analyze the information at a glance. With it users can quickly identify patterns, trends, and outliers in the data. Should the data be too large, the table can be paginated to improve performance and user experience.
