@@ -6,12 +6,61 @@
 #include "UIModals/textbox.h"
 #include "UIModals/objectRenderer.h"
 #include "loginManager/loginManager.h"
+#include "crypto/ECC.h"
 #include <iostream>
+#include <fstream>
 #include <sstream>
+#include <cstdio>
+#include <csignal>
 
 #if defined(_WIN32) || defined(_WIN64)
     #include <conio.h>
+    #include <windows.h>
 #endif
+
+static bool file_exists(const std::string& path) {
+    std::ifstream f(path);
+    return f.good();
+}
+
+// ---------------------------------------------------------------------------
+// Abort-safe re-encryption guard
+// ---------------------------------------------------------------------------
+static struct {
+    ecc::EccCrypto* crypto = nullptr;
+    std::string dbPath;
+    std::string eccPath;
+    bool eccReady = false;
+    volatile bool dbDecrypted = false;
+} g_dbGuard;
+
+static void reencryptNow() {
+    if (g_dbGuard.eccReady && g_dbGuard.crypto && g_dbGuard.dbDecrypted) {
+        if (file_exists(g_dbGuard.dbPath)) {
+            try {
+                g_dbGuard.crypto->encryptDatabaseFile(g_dbGuard.dbPath, g_dbGuard.eccPath);
+            } catch (...) {}
+        }
+        g_dbGuard.dbDecrypted = false;
+    }
+}
+
+#if defined(_WIN32) || defined(_WIN64)
+static BOOL WINAPI consoleCtrlHandler(DWORD dwEvent) {
+    if (dwEvent == CTRL_C_EVENT || dwEvent == CTRL_BREAK_EVENT ||
+        dwEvent == CTRL_CLOSE_EVENT || dwEvent == CTRL_LOGOFF_EVENT ||
+        dwEvent == CTRL_SHUTDOWN_EVENT) {
+        reencryptNow();
+        return FALSE;
+    }
+    return FALSE;
+}
+#endif
+
+static void signalHandler(int) {
+    reencryptNow();
+    _exit(1);
+}
 
 int main(int argc, char* argv[]) {
 
@@ -87,7 +136,57 @@ int main(int argc, char* argv[]) {
     // Instantiate login manager — automatically loads .env credentials
     LoginManager auth;
 
-    // Login validation callback — checks credentials against .env
+    // -----------------------------------------------------------------------
+    // ECC key setup — keys stored in .env alongside user credentials
+    // -----------------------------------------------------------------------
+    const std::string dbPath     = "db/movieverse.db";
+    const std::string eccPath    = dbPath + ".ecc";
+
+    ecc::EccCrypto crypto;
+    bool eccReady = false;
+
+    std::string envPriv = auth.load_env_value("ECC_PRIVATE_KEY");
+    std::string envPub  = auth.load_env_value("ECC_PUBLIC_KEY");
+
+    if (!envPriv.empty() && !envPub.empty()) {
+        try {
+            crypto.setStoredKeyPair(
+                ecc::EccCrypto::hexToBytes(envPub),
+                ecc::EccCrypto::hexToBytes(envPriv)
+            );
+            eccReady = true;
+        } catch (...) {
+            std::cerr << "\n  [ECC] Failed to load keys from .env.\n";
+        }
+    } else {
+        // First run — generate keys and store in .env
+        try {
+            ecc::KeyPair kp = crypto.generateKeyPair();
+            auth.save_env_value("ECC_PUBLIC_KEY",
+                ecc::EccCrypto::bytesToHex(kp.publicKey()));
+            auth.save_env_value("ECC_PRIVATE_KEY",
+                ecc::EccCrypto::bytesToHex(kp.privateKey()));
+            eccReady = true;
+            std::cout << "\n  [ECC] Generated new key pair and saved to .env.\n";
+        } catch (...) {
+            std::cerr << "\n  [ECC] Failed to generate keys.\n";
+        }
+    }
+
+    // Populate abort-safe guard and register termination handlers
+    g_dbGuard.crypto = &crypto;
+    g_dbGuard.dbPath = dbPath;
+    g_dbGuard.eccPath = eccPath;
+    g_dbGuard.eccReady = eccReady;
+    g_dbGuard.dbDecrypted = false;
+
+    #if defined(_WIN32) || defined(_WIN64)
+        SetConsoleCtrlHandler(consoleCtrlHandler, TRUE);
+    #endif
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
+
+    // Login validation callback — checks credentials against .env, then decrypts db
     btnLogin.setOnActivate([&]() {
         std::string user = txtUsername.text();
         std::string pass = txtPassword.text();
@@ -95,6 +194,29 @@ int main(int argc, char* argv[]) {
         if (!user.empty() && !pass.empty()) {
             if (auth.login_user(user, pass)) {
                 std::cout << " Session Owner: " << auth.get_current_user() << " has connected.\n";
+                // Ensure database is encrypted at rest, then decrypt for the session
+                if (eccReady) {
+                    try {
+                        if (!file_exists(eccPath)) {
+                            if (!file_exists(dbPath)) {
+                                // No database at all — create a fresh one
+                                std::cout << "\x1b[33m[INIT] No database found. Creating new database...\x1b[0m\n";
+                                std::ofstream f(dbPath);
+                                f << "MOVIEVERSE_DB\nuser=" << user << "\n";
+                                f.close();
+                            }
+                            // Encrypt plaintext db -> .ecc (removes .db)
+                            crypto.encryptDatabaseFile(dbPath, eccPath);
+                            std::cout << "\x1b[32m[ENCRYPT] Database encrypted at rest: " << eccPath << "\x1b[0m\n";
+                        }
+                        // Decrypt .ecc -> .db for the session
+                        crypto.decryptDatabaseFile(eccPath, dbPath);
+                        g_dbGuard.dbDecrypted = true;
+                        std::cout << "\x1b[32m[DECRYPT] Database decrypted: " << eccPath << " -> " << dbPath << "\x1b[0m\n";
+                    } catch (const std::exception& e) {
+                        std::cout << "\x1b[31m[DB] Failed: " << e.what() << "\x1b[0m\n";
+                    }
+                }
             }
         } else {
             std::cout << "\x1b[31mPlease enter both username and password.\x1b[0m\n";
@@ -132,5 +254,13 @@ int main(int argc, char* argv[]) {
     map.setPartition(&area);
 
     map.run();
+
+    // -----------------------------------------------------------------------
+    // Re-encrypt database on exit (also handled by signal/console handlers)
+    // -----------------------------------------------------------------------
+    std::cout << "\x1b[33m[ENCRYPT] Re-encrypting database...\x1b[0m\n";
+    reencryptNow();
+    std::cout << "\x1b[32m[ENCRYPT] Database encrypted.\x1b[0m\n";
+
     return 0;
 }

@@ -72,6 +72,13 @@ void EccCrypto::saveKeyPair(const std::string& privKeyPath, const std::string& p
         service_->savePrivateKey(privKeyPath, storedPrivateKey_);
 }
 
+void EccCrypto::setStoredKeyPair(const std::vector<uint8_t>& pubKey,
+                                  const std::vector<uint8_t>& privKey)
+{
+    storedPublicKey_ = pubKey;
+    storedPrivateKey_ = privKey;
+}
+
 std::vector<uint8_t> EccCrypto::encrypt(const std::vector<uint8_t>& plaintext,
                                          const std::vector<uint8_t>& recipientPublicKey)
 {
@@ -112,6 +119,22 @@ std::string EccCrypto::decryptDatabase(const std::string& ciphertextHex)
     std::vector<uint8_t> ct = hexToBytes(ciphertextHex);
     std::vector<uint8_t> pt = decryptWithStoredKey(ct);
     return std::string(pt.begin(), pt.end());
+}
+
+void EccCrypto::encryptDatabaseFile(const std::string& dbPath, const std::string& eccPath)
+{
+    if (storedPublicKey_.empty())
+        throw EccException("No public key loaded. Call generateKeyPair() or loadKeyPair() first.");
+    service_->encryptFile(dbPath, eccPath, storedPublicKey_);
+    std::remove(dbPath.c_str());
+}
+
+void EccCrypto::decryptDatabaseFile(const std::string& eccPath, const std::string& dbPath)
+{
+    if (storedPrivateKey_.empty())
+        throw EccException("No private key loaded. Call generateKeyPair() or loadKeyPair() first.");
+    service_->decryptFile(eccPath, dbPath, storedPrivateKey_);
+    std::remove(eccPath.c_str());
 }
 
 } // namespace ecc
