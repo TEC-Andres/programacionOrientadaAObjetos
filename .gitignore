@@ -9,4 +9,5 @@
 *.exe
 *.dll
 *.env
+*.ecc
 
