@@ -1,9 +1,7 @@
 # Settings in Dashboard
 
-## module description
-this document details the interactive parameters that allow developers and end users to alter app behaviors during execution loops.
+This module displays the name and allow for annotations to be added to the settings.
 
-## toggle options
-* switches console color skins between light, slate, and neutral palettes.
-* defines default search constraints and automated record sorting profiles.
-* writes active settings to local file blocks to preserve user choices across sessions.
+It remains unused but it allows for future enhancements and customizations.
+
+Here's also located the exit button for the application.

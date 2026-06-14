@@ -1,8 +1,10 @@
 # Graphs in Dashboard
 
-## module description
-this document reviews the lightweight chart rendering components used to plot metrics using plain typewriter text layouts.
+Graphs in the dashboard provide visual representations of the data, allowing users to better understand and analyze the information. These graphs can be customized with different chart types, colors, and labels to suit the user's preferences and needs.
 
-## system telemetry metrics
-* prints horizontal bar counters matching the total volume of entries per film category.
-* plots data ratios evaluating average scores between series entries and independent movie files.
+You can create the following types of graphs:
+- **Pie Charts** - Show the proportion of each category in a whole.
+- **Histograms** - Display the distribution of a dataset.
+- **Gradient Squares** - Display a gradient of colors across a square area.
+
+With these graph types, users can effectively visualize and interpret their data, making it easier to identify patterns, trends, and insights.
