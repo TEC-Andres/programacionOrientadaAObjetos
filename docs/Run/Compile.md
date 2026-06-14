@@ -1,21 +1,43 @@
-# Compilation Process
+# compilation process
 
-## environment prerequisites
+## Environment prerequisites
 before starting the build process, make sure you have installed the following tools:
-* a native compiler with full support for the c++17 standard
-* cmake build system version 3.10 or higher
-* openssl external development libraries
+* A native compiler with full support for the C++17 standard  
+* CMAKE build system version 3.10 or higher  
+* OpenSSL external development libraries  
 
-## compilation steps
-follow this simple sequence of commands in your terminal to compile the code:
+## Compilation steps
+Follow this simple sequence of commands in your terminal to compile the code:
 
-### step 1:generate configurations
-run this command to set up the build directory:
+## Requirements
+The following requirements must be met before compilation:
+* A C++17 compliant compiler
+* CMake 3.10 or higher
+* OpenSSL development libraries
+* SQLite3 development libraries
+
+Preferably for windows, use Visual Studio Code SDK for C++ or the mingw-w64 toolchain for compilation.
+
+### Step 1: Generate configurations
+Run this command to set up the build directory:
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 ```
-### step 2: run the compilation engine to generate the final binaries.
+### Step 2: Run the compilation engine to generate the final binaries.
 
-```
+```bash
 cmake --build build --config Release
 ```
+
+What you will end up seeing is a list of binaries in the `__release__` folder.  
+```
+C:.
+│   SituacionProblema.exe
+│
+└───environments
+        eccDatabase.exe
+        eccTest.exe
+        login.exe
+        videoClass.exe
+```
+
