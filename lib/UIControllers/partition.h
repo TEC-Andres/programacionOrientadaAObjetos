@@ -58,6 +58,12 @@ public:
     bool handleKey(int key);
     void setFocus(bool on);
     bool hasFocus() const { return hasFocus_; }
+    bool focusNextRegion();
+    bool focusPrevRegion();
+    IComponent* getFocusedComponent() const { return focusedComponent(); }
+
+    int cursorScreenX() const { return cursorScreenX_; }
+    int cursorScreenY() const { return cursorScreenY_; }
 
 private:
     static int alignmentBand(Align a);
@@ -74,6 +80,8 @@ private:
     bool hasFocus_;
     int focusRegion_;
     int focusComp_;
+    int cursorScreenX_ = 0;
+    int cursorScreenY_ = 0;
 };
 
 } // namespace ui
