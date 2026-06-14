@@ -9,8 +9,10 @@ set(OPENSSL_ROOT_DIR "C:/msys64/mingw64" CACHE PATH "MinGW OpenSSL root")
 include_directories(${CMAKE_SOURCE_DIR}/lib ${CMAKE_SOURCE_DIR}/assets ${CMAKE_SOURCE_DIR}/pageStructure)
 
 find_package(OpenSSL REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 add_compile_definitions(HAS_OPENSSL)
+add_compile_definitions(HAS_SQLITE3)
 
 file(GLOB_RECURSE LIB_SOURCES
 	lib/*.cpp
@@ -18,7 +20,7 @@ file(GLOB_RECURSE LIB_SOURCES
 )
 
 add_library(SituacionProblemaLib ${LIB_SOURCES})
-target_link_libraries(SituacionProblemaLib PRIVATE OpenSSL::Crypto)
+target_link_libraries(SituacionProblemaLib PRIVATE OpenSSL::Crypto SQLite::SQLite3)
 
 add_executable(SituacionProblema src/main.cpp)
 target_link_libraries(SituacionProblema PRIVATE SituacionProblemaLib)

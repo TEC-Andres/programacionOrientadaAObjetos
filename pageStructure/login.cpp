@@ -1,4 +1,5 @@
 #include "login.h"
+#include "pages/dbGuard.h"
 #include "UIControllers/mapComponent.h"
 #include "UIControllers/partition.h"
 #include "UIModals/locationBar.h"
@@ -7,6 +8,7 @@
 #include "UIModals/objectRenderer.h"
 #include "ascii/__mapping.h"
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -21,6 +23,41 @@ Login::Login() {}
 
 bool Login::run() {
     using namespace ui;
+
+    std::string envPriv = auth_.load_env_value("ECC_PRIVATE_KEY");
+    std::string envPub  = auth_.load_env_value("ECC_PUBLIC_KEY");
+
+    bool eccReady = false;
+    const std::string dbPath  = "db/movieverse.db";
+    const std::string eccPath = dbPath + ".ecc";
+
+    if (!envPriv.empty() && !envPub.empty()) {
+        try {
+            g_dbGuard.crypto.setStoredKeyPair(
+                ecc::EccCrypto::hexToBytes(envPub),
+                ecc::EccCrypto::hexToBytes(envPriv)
+            );
+            eccReady = true;
+        } catch (...) {
+            std::cerr << "\n  [ECC] Failed to load keys from .env.\n";
+        }
+    } else {
+        try {
+            ecc::KeyPair kp = g_dbGuard.crypto.generateKeyPair();
+            auth_.save_env_value("ECC_PUBLIC_KEY",
+                ecc::EccCrypto::bytesToHex(kp.publicKey()));
+            auth_.save_env_value("ECC_PRIVATE_KEY",
+                ecc::EccCrypto::bytesToHex(kp.privateKey()));
+            eccReady = true;
+        } catch (...) {
+            std::cerr << "\n  [ECC] Failed to generate keys.\n";
+        }
+    }
+
+    g_dbGuard.dbPath = dbPath;
+    g_dbGuard.eccPath = eccPath;
+    g_dbGuard.eccReady = eccReady;
+    g_dbGuard.dbDecrypted = false;
 
     ObjectRenderer loginImage(
         ui::ascii::loginImage_raw,
@@ -89,16 +126,51 @@ bool Login::run() {
         component::align = Align::BottomCenter
     );
 
-    bool authenticated = false;
+    bool loginSuccess = false;
 
     btnLogin.setOnActivate([&]() {
         std::string user = txtUsername.text();
         std::string pass = txtPassword.text();
+        std::cout << "\x1b[2J\x1b[H";
         if (!user.empty() && !pass.empty()) {
             if (auth_.login_user(user, pass)) {
-                authenticated = true;
-                map.stop();
+                loginSuccess = true;
+                std::cout << " Session Owner: " << auth_.get_current_user() << " has connected.\n";
+                if (eccReady) {
+                    try {
+                        auto fileExists = [](const std::string& p) -> bool {
+                            std::ifstream f(p);
+                            return f.good();
+                        };
+                        if (!fileExists(eccPath)) {
+                            if (!fileExists(dbPath)) {
+                                std::cout << "\x1b[33m[INIT] No database found. Creating new database...\x1b[0m\n";
+                                std::ofstream f(dbPath);
+                                f << "MOVIEVERSE_DB\nuser=" << user << "\n";
+                                f.close();
+                            }
+                            g_dbGuard.crypto.encryptDatabaseFile(dbPath, eccPath);
+                            std::cout << "\x1b[32m[ENCRYPT] Database encrypted at rest: " << eccPath << "\x1b[0m\n";
+                        }
+                        g_dbGuard.crypto.decryptDatabaseFile(eccPath, dbPath);
+                        g_dbGuard.dbDecrypted = true;
+                        std::cout << "\x1b[32m[DECRYPT] Database decrypted: " << eccPath << " -> " << dbPath << "\x1b[0m\n";
+                    } catch (const std::exception& e) {
+                        std::cout << "\x1b[31m[DB] Failed: " << e.what() << "\x1b[0m\n";
+                    }
+                }
             }
+        } else {
+            std::cout << "\x1b[31mPlease enter both username and password.\x1b[0m\n";
+        }
+        std::cout << "\nPress any key to continue...\n";
+        #if defined(_WIN32) || defined(_WIN64)
+            _getch();
+        #else
+            std::cin.get();
+        #endif
+        if (loginSuccess) {
+            map.stop();
         }
     });
 
@@ -122,7 +194,7 @@ bool Login::run() {
 
     map.run();
 
-    return authenticated;
+    return loginSuccess;
 }
 
 bool Login::is_authenticated() const {

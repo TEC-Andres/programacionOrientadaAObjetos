@@ -512,6 +512,61 @@ void MapComponent::render(std::ostream &out)
 
         occupied.push_back({row, col, compWidth, compHeight});
     }
+
+    // Manage cursor for non-Partition mode
+    if (hasFocus_) {
+        GridCell *focused = nullptr;
+        for (auto &cell : cells_) {
+            if (cell.component && cell.row == focusRow_ && cell.col == focusCol_) {
+                focused = &cell;
+                break;
+            }
+        }
+        if (focused && focused->component && focused->component->wantsCursor()) {
+            int curX = focused->component->cursorX();
+            int curY = focused->component->cursorY();
+            // Find the actual screen position of the component by re-calculating
+            int compRow = focused->row, compCol = focused->col;
+            Align align = focused->component->alignment();
+            switch (align) {
+                case Align::Center: case Align::TopCenter:
+                    compCol = (consoleWidth_ - focused->component->width()) / 2;
+                    break;
+                case Align::Right: case Align::TopRight:
+                    compCol = consoleWidth_ - focused->component->width();
+                    break;
+                case Align::MiddleLeft:
+                    compRow = (consoleHeight_ - focused->component->height()) / 2;
+                    break;
+                case Align::MiddleCenter:
+                    compCol = (consoleWidth_ - focused->component->width()) / 2;
+                    compRow = (consoleHeight_ - focused->component->height()) / 2;
+                    break;
+                case Align::MiddleRight:
+                    compCol = consoleWidth_ - focused->component->width();
+                    compRow = (consoleHeight_ - focused->component->height()) / 2;
+                    break;
+                case Align::BottomLeft:
+                    compRow = consoleHeight_ - focused->component->height();
+                    break;
+                case Align::BottomCenter:
+                    compCol = (consoleWidth_ - focused->component->width()) / 2;
+                    compRow = consoleHeight_ - focused->component->height();
+                    break;
+                case Align::BottomRight:
+                    compCol = consoleWidth_ - focused->component->width();
+                    compRow = consoleHeight_ - focused->component->height();
+                    break;
+                default: break;
+            }
+            out << "\x1b[" << (compRow + curY + 1) << ";" << (compCol + curX + 1) << "H";
+            out << "\x1b[?25h";
+        } else {
+            out << "\x1b[?25l";
+        }
+    } else {
+        out << "\x1b[?25l";
+    }
 }
 
 bool MapComponent::handleInput()
@@ -529,6 +584,7 @@ bool MapComponent::handleInput()
             case 80: key = DOWN_ARROW; break;
             case 75: key = LEFT_ARROW; break;
             case 77: key = RIGHT_ARROW; break;
+            case 15: key = SHIFT_TAB; break;
         }
         needsRedraw_ = true;
         if (partition_) {
@@ -557,8 +613,11 @@ bool MapComponent::handleInput()
             case 13: activate(); return true;
             case 27: running_ = false; return true;
             case '\t':
-                if (moveDown()) return true;
-                focusFirstFocusable();
+                if (partition_) {
+                    partition_->handleKey(9);
+                } else {
+                    if (!moveDown()) focusFirstFocusable();
+                }
                 return true;
         }
     }
@@ -590,6 +649,7 @@ bool MapComponent::handleInput()
                                 case 'B': ak = DOWN_ARROW; break;
                                 case 'D': ak = LEFT_ARROW; break;
                                 case 'C': ak = RIGHT_ARROW; break;
+                                case 'Z': ak = SHIFT_TAB; break;
                             }
                             if (ak && partition_->handleKey(ak)) {
                                 handled = true;
@@ -625,7 +685,11 @@ bool MapComponent::handleInput()
                         case '\n': case '\r': activate(); handled = true; break;
                         case 27: running_ = false; handled = true; break;
                         case '\t':
-                            if (!moveDown()) focusFirstFocusable();
+                            if (partition_) {
+                                partition_->handleKey(9);
+                            } else {
+                                if (!moveDown()) focusFirstFocusable();
+                            }
                             handled = true;
                             break;
                     }
@@ -824,7 +888,7 @@ void MapComponent::run()
         }
     }
 
-    // Restore terminal
+    // Always show cursor on exit
     std::cout << "\033[?25h";
     std::cout << "\033[?1049l";
     std::cout << "\x1b]11;#000000\x07";

@@ -28,10 +28,12 @@ def main():
 
     c.execute("""
         CREATE TABLE series (
-            id    INTEGER PRIMARY KEY AUTOINCREMENT,
-            name  TEXT    NOT NULL UNIQUE,
-            genre TEXT    NOT NULL,
-            rating REAL
+            id     INTEGER PRIMARY KEY AUTOINCREMENT,
+            name   TEXT    NOT NULL UNIQUE,
+            length INTEGER NOT NULL,
+            genre  TEXT    NOT NULL,
+            rating REAL,
+            season INTEGER NOT NULL
         )
     """)
 
@@ -64,11 +66,13 @@ def main():
         reader = csv.DictReader(f)
         for row in reader:
             name = clean(row['Name'])
+            length = int(clean(row['Length']))
             genre = clean(row['Genre'])
             rating = float(clean(row['Rating']))
+            season = int(clean(row['Season']))
             c.execute(
-                "INSERT INTO series (name, genre, rating) VALUES (?, ?, ?)",
-                (name, genre, rating)
+                "INSERT INTO series (name, length, genre, rating, season) VALUES (?, ?, ?, ?, ?)",
+                (name, length, genre, rating, season)
             )
 
     # --- Episodes (link to series by name, case-insensitive) ---
