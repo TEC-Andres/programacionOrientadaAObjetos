@@ -1,5 +1,16 @@
 # Movie Class
 
+```mermaid
+classDiagram
+class Movie{
+    -string director
+    +Movie()
+    +Movie(uint32_t id, string name, uint32_t length, string genre, uint8_t rating, string director)
+    +getDirector() string
+    +setDirector(string director) void
+}
+```
+
 ## module description
 this document profiles the structural fields added to the derived film class layout through standard object oriented inheritance vectors.
 
