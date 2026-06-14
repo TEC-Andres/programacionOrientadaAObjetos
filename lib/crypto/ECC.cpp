@@ -126,7 +126,6 @@ void EccCrypto::encryptDatabaseFile(const std::string& dbPath, const std::string
     if (storedPublicKey_.empty())
         throw EccException("No public key loaded. Call generateKeyPair() or loadKeyPair() first.");
     service_->encryptFile(dbPath, eccPath, storedPublicKey_);
-    std::remove(dbPath.c_str());
 }
 
 void EccCrypto::decryptDatabaseFile(const std::string& eccPath, const std::string& dbPath)
