@@ -21,7 +21,7 @@ Preferably for windows, use Visual Studio Code SDK for C++ or the mingw-w64 tool
 ### Step 1: Generate configurations
 Run this command to set up the build directory:
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
 ```
 ### Step 2: Run the compilation engine to generate the final binaries.
 

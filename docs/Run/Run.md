@@ -13,7 +13,7 @@ python3 create_database.py
 ```
 
 Once the database is created, you can launch the application from the `__release__` directory, if you select the default environment variables. The parameters for username and password are the following:
-- Username: `admin`
+- Username: `andres`
 - Password: `1234`
 
 If you did everything correctly, the application should launch without any issues.
