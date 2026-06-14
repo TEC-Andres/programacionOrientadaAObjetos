@@ -29,7 +29,8 @@ class Video{
 class Movie{
     -string director
     +Movie()
-    +Movie(uint32_t id, string name, uint32_t length, string genre, uint8_t rating, string director)         +getDirector() string
+    +Movie(uint32_t id, string name, uint32_t length, string genre, uint8_t rating, string director)
+    +getDirector() string
     +setDirector(string director) void
 }
 
@@ -37,8 +38,7 @@ class Series{
     -uint32_t season
     -string title
     +Series()
-    +Series(uint32_t id, string name, uint32_t length, string genre, uint8_t rating, uint32_t season,
-string title)
+    +Series(uint32_t id, string name, uint32_t length, string genre, uint8_t rating, uint32_t season, string title)
     +getSeason() uint32_t
     +setSeason(uint32_t season) void
     +getTitle() string
